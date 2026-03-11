@@ -1,94 +1,151 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<title>Image Background Remover</title>
+
+<title>AI GIF Background Remover</title>
 
 <style>
+
 body{
 font-family:Arial;
 text-align:center;
-background:#f4f4f4;
+background:#111;
+color:white;
+}
+
+#drop{
+border:2px dashed white;
+padding:40px;
+margin:20px;
 }
 
 canvas{
-border:1px solid black;
 margin-top:20px;
 }
 
 button{
-padding:10px 20px;
+padding:10px;
 margin:10px;
-cursor:pointer;
 }
+
 </style>
+
+<script src="https://unpkg.com/gifuct-js/dist/gifuct.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gif.js.optimized/dist/gif.js"></script>
 
 </head>
 
 <body>
 
-<h1>Image Background Remover</h1>
+<h2>AI GIF Background Remover</h2>
+
+<div id="drop">
+Drag & Drop GIF Here
+</div>
 
 <input type="file" id="upload">
 
 <br><br>
 
-<canvas id="canvas"></canvas>
+<label>Background Color</label>
+<input type="color" id="picker" value="#00ff00">
 
-<br><br>
+<br>
 
-<button onclick="removeBg()">Remove Background</button>
-<button onclick="downloadImg()">Download Image</button>
+<button onclick="processGif()">Remove Background</button>
+
+<button onclick="downloadGif()">Export Transparent GIF</button>
+
+<canvas id="preview"></canvas>
 
 <script>
 
-const upload=document.getElementById("upload");
-const canvas=document.getElementById("canvas");
-const ctx=canvas.getContext("2d");
+let frames=[];
+let output;
 
-let img=new Image();
+document.getElementById("upload").onchange=loadGif;
 
-upload.onchange=function(e){
+async function loadGif(e){
 
-const file=e.target.files[0];
+let file=e.target.files[0];
 
-if(!file) return;
+let buffer=await file.arrayBuffer();
 
-img.src=URL.createObjectURL(file);
+let gifData=gifuct.parseGIF(buffer);
 
-img.onload=function(){
+frames=gifuct.decompressFrames(gifData,true);
 
-canvas.width=img.width;
-canvas.height=img.height;
-
-ctx.drawImage(img,0,0);
+alert("Frames Loaded: "+frames.length);
 
 }
 
-}
+function processGif(){
 
-function removeBg(){
+let color=document.getElementById("picker").value;
 
-const imageData=ctx.getImageData(0,0,canvas.width,canvas.height);
-const data=imageData.data;
+let r=parseInt(color.substr(1,2),16);
+let g=parseInt(color.substr(3,2),16);
+let b=parseInt(color.substr(5,2),16);
+
+let gif=new GIF({workers:2,quality:10});
+
+frames.forEach(frame=>{
+
+let canvas=document.createElement("canvas");
+let ctx=canvas.getContext("2d");
+
+canvas.width=frame.dims.width;
+canvas.height=frame.dims.height;
+
+let imgData=ctx.createImageData(canvas.width,canvas.height);
+
+let data=imgData.data;
 
 for(let i=0;i<data.length;i+=4){
 
-if(data[i]>240 && data[i+1]>240 && data[i+2]>240){
+data[i]=frame.patch[i];
+data[i+1]=frame.patch[i+1];
+data[i+2]=frame.patch[i+2];
+data[i+3]=255;
+
+if(
+Math.abs(data[i]-r)<20 &&
+Math.abs(data[i+1]-g)<20 &&
+Math.abs(data[i+2]-b)<20
+){
 data[i+3]=0;
 }
 
 }
 
-ctx.putImageData(imageData,0,0);
+ctx.putImageData(imgData,0,0);
+
+gif.addFrame(canvas,{delay:frame.delay});
+
+});
+
+gif.render();
+
+gif.on("finished",function(blob){
+
+output=blob;
+
+let url=URL.createObjectURL(blob);
+
+let img=new Image();
+img.src=url;
+
+document.body.appendChild(img);
+
+});
 
 }
 
-function downloadImg(){
+function downloadGif(){
 
-const link=document.createElement("a");
-link.download="result.png";
-link.href=canvas.toDataURL();
+let link=document.createElement("a");
+link.href=URL.createObjectURL(output);
+link.download="transparent.gif";
 link.click();
 
 }
