@@ -2,43 +2,22 @@ const upload = document.getElementById("upload")
 const canvas = document.getElementById("canvas")
 const ctx = canvas.getContext("2d")
 
-let frames = []
-let gif
+let img = new Image()
 
-upload.addEventListener("change", handleGIF)
-
-function handleGIF(e){
+upload.onchange = function(e){
 
 const file = e.target.files[0]
 
-const reader = new FileReader()
+img.src = URL.createObjectURL(file)
 
-reader.onload = function(){
+img.onload = function(){
 
-const gif = gifuct.parseGIF(reader.result)
+canvas.width = img.width
+canvas.height = img.height
 
-frames = gifuct.decompressFrames(gif,true)
-
-drawFrame(0)
-
-}
-
-reader.readAsArrayBuffer(file)
+ctx.drawImage(img,0,0)
 
 }
-
-function drawFrame(i){
-
-const frame = frames[i]
-
-canvas.width = frame.dims.width
-canvas.height = frame.dims.height
-
-const imageData = ctx.createImageData(frame.dims.width,frame.dims.height)
-
-imageData.data.set(frame.patch)
-
-ctx.putImageData(imageData,0,0)
 
 }
 
@@ -63,5 +42,28 @@ data[i+3]=0
 }
 
 ctx.putImageData(imageData,0,0)
+
+}
+
+document.getElementById("download").onclick = function(){
+
+const gif = new GIF({
+workers:2,
+quality:10,
+workerScript:"gif.worker.js"
+})
+
+gif.addFrame(canvas,{delay:200})
+
+gif.on("finished",function(blob){
+
+const link=document.createElement("a")
+link.href=URL.createObjectURL(blob)
+link.download="transparent.gif"
+link.click()
+
+})
+
+gif.render()
 
 }
