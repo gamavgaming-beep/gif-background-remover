@@ -2,57 +2,40 @@ const upload = document.getElementById("upload");
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 
-let frames = [];
-let width = 0;
-let height = 0;
+let img = new Image();
 
-upload.onchange = function(e){
+upload.addEventListener("change", function(e){
 
 const file = e.target.files[0];
-const reader = new FileReader();
 
-reader.onload = function(){
+if(!file) return;
 
-const gif = gifuct.parseGIF(reader.result);
-frames = gifuct.decompressFrames(gif,true);
+const url = URL.createObjectURL(file);
 
-width = frames[0].dims.width;
-height = frames[0].dims.height;
+img.onload = function(){
 
-canvas.width = width;
-canvas.height = height;
+canvas.width = img.width;
+canvas.height = img.height;
 
-drawFrame(0);
+ctx.clearRect(0,0,canvas.width,canvas.height);
+ctx.drawImage(img,0,0);
 
 };
 
-reader.readAsArrayBuffer(file);
+img.src = url;
 
-};
-
-function drawFrame(i){
-
-const frame = frames[i];
-
-const imageData = ctx.createImageData(frame.dims.width,frame.dims.height);
-
-imageData.data.set(frame.patch);
-
-ctx.putImageData(imageData,0,0);
-
-}
+});
 
 document.getElementById("remove").onclick = function(){
 
-frames.forEach(frame=>{
-
-let data = frame.patch;
+const imageData = ctx.getImageData(0,0,canvas.width,canvas.height);
+const data = imageData.data;
 
 for(let i=0;i<data.length;i+=4){
 
-let r=data[i];
-let g=data[i+1];
-let b=data[i+2];
+const r=data[i];
+const g=data[i+1];
+const b=data[i+2];
 
 if(r>240 && g>240 && b>240){
 
@@ -62,39 +45,18 @@ data[i+3]=0;
 
 }
 
-});
+ctx.putImageData(imageData,0,0);
 
-drawFrame(0);
-
-}
+};
 
 document.getElementById("download").onclick = function(){
 
-const gif = new GIF({
-workers:2,
-quality:10,
-width:width,
-height:height
-});
-
-frames.forEach(frame=>{
-
-const imageData = new ImageData(frame.patch,width,height);
-ctx.putImageData(imageData,0,0);
-
-gif.addFrame(canvas,{delay:200});
-
-});
-
-gif.on("finished",function(blob){
-
 const link=document.createElement("a");
-link.href=URL.createObjectURL(blob);
-link.download="edited.gif";
+
+link.download="result.png";
+
+link.href=canvas.toDataURL();
+
 link.click();
 
-});
-
-gif.render();
-
-}
+};
