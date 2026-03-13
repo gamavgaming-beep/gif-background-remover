@@ -3,54 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GIF BG Remover - Fixed Download</title>
+    <title>GIF BG Remover - Final Fix</title>
     
     <script src="https://unpkg.com/gif-frames/dist/gif-frames.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
     
     <style>
-        body { font-family: sans-serif; background-color: #f0f2f5; margin: 0; padding: 10px; }
-        .container { background: #fff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden; margin-bottom: 20px; }
+        body { font-family: sans-serif; background-color: #f0f2f5; margin: 0; padding: 10px; color: #333; }
+        .container { background: #fff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden; margin-bottom: 15px; }
         h2 { font-size: 16px; color: #4a6da7; padding: 12px; margin: 0; text-align: center; border-bottom: 1px solid #ddd; }
 
         .preview-box {
-            width: 100%; height: 250px; position: relative; border-bottom: 1px solid #ddd;
+            width: 100%; height: 260px; position: relative; border-bottom: 1px solid #ddd;
             background-image: linear-gradient(45deg, #eee 25%, transparent 25%), linear-gradient(-45deg, #eee 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #eee 75%), linear-gradient(-45deg, transparent 75%, #eee 75%);
-            background-size: 15px 15px; background-position: 0 0, 0 7.5px, 7.5px -7.5px, -7.5px 0px;
+            background-size: 16px 16px; background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
             display: flex; align-items: center; justify-content: center;
         }
         canvas { max-width: 95%; max-height: 95%; }
 
-        .bottom-bar { background-color: #5a78af; display: flex; justify-content: space-around; padding: 10px 0; }
+        .bottom-bar { background-color: #5a78af; display: flex; justify-content: space-around; padding: 12px 0; }
         .bottom-bar button { background: transparent; border: none; color: white; font-size: 12px; font-weight: bold; flex: 1; cursor: pointer; }
 
         .controls { padding: 15px; }
         .control-group { margin-bottom: 15px; }
         label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 5px; color: #666; }
-        input[type="range"] { width: 100%; }
+        input[type="range"] { width: 100%; height: 30px; }
         .color-row { display: flex; gap: 10px; }
         input[type="text"] { flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+        input[type="color"] { width: 50px; height: 35px; border: 1px solid #ddd; }
 
-        /* Loading Overlay */
+        /* Full Screen Loading Overlay */
         #loadingOverlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85); display: none; flex-direction: column;
-            align-items: center; justify-content: center; z-index: 9999; color: white;
+            background: rgba(0,0,0,0.9); display: none; flex-direction: column;
+            align-items: center; justify-content: center; z-index: 10000; color: white;
         }
         .spinner {
             width: 60px; height: 60px; border: 6px solid #f3f3f3;
             border-top: 6px solid #3498db; border-radius: 50%;
-            animation: spin 1s linear infinite; margin-bottom: 15px;
+            animation: spin 1s linear infinite; margin-bottom: 20px;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        #progressText { font-size: 22px; font-weight: bold; color: #3498db; }
     </style>
 </head>
 <body>
 
     <div id="loadingOverlay">
         <div class="spinner"></div>
-        <div id="progressText" style="font-size: 20px; font-weight: bold;">Encoding: 0%</div>
-        <p>Please wait, compiling GIF...</p>
+        <div id="progressText">Encoding: 0%</div>
+        <p style="margin-top:10px; font-size:14px;">தயவுசெய்து காத்திருங்கள்... GIF தயாராகிறது.</p>
     </div>
 
     <div class="container">
@@ -58,6 +60,7 @@
         <div class="preview-box">
             <canvas id="inCanvas"></canvas>
             <input type="file" id="fileIn" accept="image/gif" style="position:absolute; width:100%; height:100%; opacity:0; cursor:pointer;">
+            <div id="msgIn" style="position:absolute; pointer-events:none; color:#777;">Click to Load GIF</div>
         </div>
         <div class="bottom-bar">
             <button onclick="document.getElementById('fileIn').click()">Import from file</button>
@@ -67,8 +70,11 @@
     </div>
 
     <div class="container">
-        <h2>Output GIF (Without Bg)</h2>
-        <div class="preview-box"><canvas id="outCanvas"></canvas></div>
+        <h2>Output GIF (Transparent)</h2>
+        <div class="preview-box">
+            <canvas id="outCanvas"></canvas>
+            <div id="msgOut" style="position:absolute; pointer-events:none; color:#777;">Preview Result Here</div>
+        </div>
         <div class="bottom-bar">
             <button>Chain with...</button>
             <button id="saveBtn">Save as (Download)</button>
@@ -79,14 +85,14 @@
     <div class="container">
         <div class="controls">
             <div class="control-group">
-                <label>Background Color</label>
+                <label>Background Color (Pick to remove)</label>
                 <div class="color-row">
                     <input type="text" id="colorText" value="#00ff00">
                     <input type="color" id="colorPicker" value="#00ff00">
                 </div>
             </div>
             <div class="control-group">
-                <label>Tolerance (<span id="tolVal">48%</span>)</label>
+                <label>Tolerance / Threshold (<span id="tolVal">48%</span>)</label>
                 <input type="range" id="tolerance" min="0" max="100" value="48">
             </div>
         </div>
@@ -110,12 +116,14 @@
         const file = e.target.files[0];
         if(!file) return;
         
-        frames = []; frameDelays = [];
+        document.getElementById('msgIn').style.display = 'none';
+        document.getElementById('msgOut').style.display = 'none';
+
         const extracted = await gifFrames({ url: URL.createObjectURL(file), frames: 'all', outputType: 'canvas' });
-        
+        frames = []; frameDelays = [];
         extracted.forEach(f => {
             frames.push(f.getImage());
-            frameDelays.push(f.frameInfo.delay * 10); // delay fix
+            frameDelays.push(f.frameInfo.delay * 10); 
         });
 
         inCanvas.width = outCanvas.width = frames[0].width;
@@ -123,12 +131,12 @@
 
         if(animId) clearInterval(animId);
         animId = setInterval(() => {
-            render(currentIdx);
+            renderPreview(currentIdx);
             currentIdx = (currentIdx + 1) % frames.length;
         }, 100);
     };
 
-    function render(idx) {
+    function renderPreview(idx) {
         const src = frames[idx];
         inCtx.clearRect(0,0,inCanvas.width, inCanvas.height);
         inCtx.drawImage(src, 0,0);
@@ -148,17 +156,21 @@
 
     saveBtn.onclick = () => {
         if(frames.length === 0) return;
-        
         loadingOverlay.style.display = 'flex';
         progressText.innerText = "Encoding: 0%";
 
-        // FIX: Worker Script URL Path
+        // முக்கிய மாற்றம்: Worker-ஐ CDN-ல் இருந்து நேரடியாக எடுக்கிறோம்
         const gif = new GIF({
             workers: 2,
             quality: 10,
             workerScript: 'https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.worker.js',
-            transparent: 0x00000000
+            width: inCanvas.width,
+            height: inCanvas.height,
+            transparent: 'rgba(0,0,0,0)'
         });
+
+        const target = hexToRgb(colorPicker.value);
+        const tol = tolerance.value * 2.55;
 
         frames.forEach((f, i) => {
             const c = document.createElement('canvas');
@@ -167,8 +179,6 @@
             ctx.drawImage(f, 0, 0);
             
             const id = ctx.getImageData(0,0,c.width,c.height), d = id.data;
-            const target = hexToRgb(colorPicker.value), tol = tolerance.value * 2.55;
-            
             for (let j=0; j<d.length; j+=4) {
                 if(Math.sqrt((d[j]-target.r)**2 + (d[j+1]-target.g)**2 + (d[j+2]-target.b)**2) < tol) d[j+3]=0;
             }
@@ -183,8 +193,10 @@
         gif.on('finished', (blob) => {
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
-            a.download = "no-bg.gif";
+            a.download = "transparent_result.gif";
+            document.body.appendChild(a);
             a.click();
+            document.body.removeChild(a);
             loadingOverlay.style.display = 'none';
         });
 
@@ -198,4 +210,3 @@
 </script>
 </body>
 </html>
-
