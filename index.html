@@ -3,21 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pro Sticker Maker - Resize & Scale</title>
+    <title>Giphy Sticker Maker - Upload Fix</title>
     <script src="https://unpkg.com/gif-frames/dist/gif-frames.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
     <style>
         :root { --primary: #007bff; }
         body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; padding: 15px; display: flex; flex-direction: column; align-items: center; }
         .container { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 480px; }
-        .preview-box { width: 100%; height: 320px; background: #eee; background-image: repeating-conic-gradient(#fff 0 90deg, #d5d5d5 0 180deg); background-size: 20px 20px; border-radius: 15px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; border: 2px solid #ddd; }
-        canvas { image-rendering: pixelated; }
-        .info-panel { background: #e9ecef; padding: 10px; border-radius: 8px; margin: 15px 0; font-size: 13px; display: flex; justify-content: space-between; font-weight: bold; color: #333; }
+        .preview-box { width: 100%; height: 320px; background: #ddd; background-image: repeating-conic-gradient(#fff 0 90deg, #c1c1c1 0 180deg); background-size: 20px 20px; border-radius: 15px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; border: 2px solid #bbb; }
+        canvas { max-width: 100%; max-height: 100%; background: transparent; }
+        .info-panel { background: #333; color: white; padding: 8px 12px; border-radius: 8px; margin: 15px 0; font-size: 12px; display: flex; justify-content: space-between; }
         .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px; }
-        label { font-size: 12px; font-weight: bold; color: #555; display: block; margin-top: 8px; }
-        input[type="range"] { width: 100%; accent-color: var(--primary); margin-bottom: 5px; }
-        input[type="color"] { width: 100%; height: 35px; border-radius: 5px; border: 1px solid #ddd; cursor: pointer; }
-        .btn { width: 100%; padding: 14px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 15px; }
+        label { font-size: 11px; font-weight: bold; color: #555; display: block; margin-bottom: 4px; }
+        input[type="range"] { width: 100%; accent-color: var(--primary); }
+        .btn { width: 100%; padding: 14px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 15px; }
         .btn-up { background: var(--primary); color: white; }
         .btn-dl { background: #28a745; color: white; }
         #loader { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; color: white; }
@@ -27,13 +26,14 @@
 
 <div id="loader">
     <h1 id="prog">0%</h1>
-    <p>Processing High Resolution Frame...</p>
+    <p>Loading Frames... Please Wait</p>
 </div>
 
 <div class="container">
-    <div class="preview-box">
+    <div class="preview-box" id="pBox">
         <canvas id="c"></canvas>
         <input type="file" id="up" accept="image/gif" style="position:absolute; inset:0; opacity:0; cursor:pointer;">
+        <div id="emptyMsg" style="position:absolute; color:#777; font-weight:bold;">Tap to Upload GIF</div>
     </div>
 
     <div class="info-panel">
@@ -41,52 +41,74 @@
         <span>Output: <span id="outSize">0x0</span></span>
     </div>
     
-    <button class="btn btn-up" onclick="document.getElementById('up').click()">UPLOAD GIF</button>
+    <button class="btn btn-up" onclick="document.getElementById('up').click()">UPLOAD NEW GIF</button>
     <button class="btn btn-dl" id="dl">DOWNLOAD STICKER</button>
 
     <div class="row">
-        <div><label>Scale (Resize)</label><input type="range" id="scaleS" min="0.1" max="2.0" step="0.1" value="1.0"></div>
-        <div><label>Accuracy</label><input type="range" id="tS" min="0" max="100" value="45"></div>
+        <div>
+            <label>Resize (Scale)</label>
+            <input type="range" id="scaleS" min="0.1" max="2.0" step="0.1" value="1.0">
+        </div>
+        <div>
+            <label>BG Accuracy</label>
+            <input type="range" id="tS" min="0" max="100" value="45">
+        </div>
     </div>
 
     <div class="row">
-        <div><label>Remove BG</label><input type="color" id="bgC" value="#ffffff"></div>
-        <div><label>Stroke Color</label><input type="color" id="stC" value="#000000"></div>
+        <div><label>Remove Color</label><input type="color" id="bgC" value="#ffffff" style="width:100%; height:35px;"></div>
+        <div><label>Stroke Color</label><input type="color" id="stC" value="#000000" style="width:100%; height:35px;"></div>
     </div>
 
     <label>Stroke Width: <span id="wV">6px</span></label>
     <input type="range" id="wS" min="0" max="25" value="6">
+    
+    <label style="margin-top:10px;"><input type="checkbox" id="sqMode" checked> Force Square (For Giphy)</label>
 </div>
 
 <script>
-    const up = document.getElementById('up'), c = document.getElementById('c'), ctx = c.getContext('2d');
-    const bgC = document.getElementById('bgC'), stC = document.getElementById('stC'), tS = document.getElementById('tS'), wS = document.getElementById('wS'), scaleS = document.getElementById('scaleS');
-    const dl = document.getElementById('dl'), loader = document.getElementById('loader'), prog = document.getElementById('prog');
+    const up = document.getElementById('up'), c = document.getElementById('c'), ctx = c.getContext('2d', {willReadFrequently: true});
+    const bgC = document.getElementById('bgC'), stC = document.getElementById('stC'), tS = document.getElementById('tS'), wS = document.getElementById('wS'), scaleS = document.getElementById('scaleS'), sqMode = document.getElementById('sqMode');
+    const dl = document.getElementById('dl'), loader = document.getElementById('loader'), prog = document.getElementById('prog'), emptyMsg = document.getElementById('emptyMsg');
     const origSizeDisp = document.getElementById('origSize'), outSizeDisp = document.getElementById('outSize');
 
     let frames = [], delays = [], cur = 0, tid = null, originalW = 0, originalH = 0;
 
     up.onchange = async (e) => {
         const file = e.target.files[0]; if(!file) return;
+        emptyMsg.style.display = 'none';
         loader.style.display = 'flex';
-        const res = await gifFrames({ url: URL.createObjectURL(file), frames: 'all', outputType: 'canvas' });
-        frames = res.map(f => f.getImage());
-        delays = res.map(f => f.frameInfo.delay * 10);
         
-        originalW = frames[0].width;
-        originalH = frames[0].height;
-        origSizeDisp.innerText = `${originalW}x${originalH}`;
-        updateCanvasSize();
-        
-        if(tid) clearInterval(tid);
-        tid = setInterval(() => { draw(cur); cur = (cur+1)%frames.length; }, 100);
+        try {
+            const res = await gifFrames({ url: URL.createObjectURL(file), frames: 'all', outputType: 'canvas' });
+            frames = res.map(f => f.getImage());
+            delays = res.map(f => f.frameInfo.delay * 10);
+            
+            originalW = frames[0].width;
+            originalH = frames[0].height;
+            origSizeDisp.innerText = `${originalW}x${originalH}`;
+            
+            updateCanvasSize();
+            if(tid) clearInterval(tid);
+            tid = setInterval(() => { draw(cur); cur = (cur+1)%frames.length; }, 100);
+        } catch (err) {
+            alert("Error loading GIF. Please try another file.");
+            emptyMsg.style.display = 'block';
+        }
         loader.style.display = 'none';
     };
 
     function updateCanvasSize() {
         const scale = parseFloat(scaleS.value);
-        c.width = Math.round(originalW * scale);
-        c.height = Math.round(originalH * scale);
+        let w = Math.round(originalW * scale);
+        let h = Math.round(originalH * scale);
+        
+        if(sqMode.checked) {
+            const max = Math.max(w, h);
+            c.width = max; c.height = max;
+        } else {
+            c.width = w; c.height = h;
+        }
         outSizeDisp.innerText = `${c.width}x${c.height}`;
     }
 
@@ -94,24 +116,18 @@
         const tc = document.createElement('canvas');
         tc.width = c.width; tc.height = c.height;
         const tx = tc.getContext('2d');
-        tx.clearRect(0, 0, tc.width, tc.height);
         
-        // Dynamic Scaling
-        tx.drawImage(img, 0, 0, tc.width, tc.height);
+        const scale = parseFloat(scaleS.value);
+        const dw = originalW * scale;
+        const dh = originalH * scale;
+        const dx = (tc.width - dw) / 2;
+        const dy = (tc.height - dh) / 2;
+
+        tx.clearRect(0, 0, tc.width, tc.height);
+        tx.drawImage(img, dx, dy, dw, dh);
 
         const id = tx.getImageData(0,0,tc.width,tc.height), d = id.data;
         const target = hex(bgC.value), tol = tS.value * 2.55;
 
         for (let i = 0; i < d.length; i += 4) {
-            const diff = Math.sqrt((d[i]-target.r)**2 + (d[i+1]-target.g)**2 + (d[i+2]-target.b)**2);
-            if (diff < tol) d[i+3] = 0;
-            else if (isExport) d[i+3] = 255;
-        }
-        tx.putImageData(id, 0, 0);
-
-        const stroke = parseInt(wS.value);
-        if (stroke > 0) {
-            const sc = document.createElement('canvas');
-            sc.width = tc.width; sc.height = tc.height;
-            const sx = sc.getContext('2d');
-            sx.fillStyle = stC.value;
+            const diff = Math.sqrt((d[i]-target.r)**2 + (d[i+1]-target
