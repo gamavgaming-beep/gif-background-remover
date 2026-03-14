@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sticker Pro - Stroke Fix</title>
+    <title>Fixed GIF Stroke Sticker</title>
     <script src="https://unpkg.com/gif-frames/dist/gif-frames.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
     <style>
         :root { --blue: #007bff; }
-        body { font-family: sans-serif; background: #f0f2f5; margin: 0; padding: 10px; }
+        body { font-family: sans-serif; background: #f8f9fa; margin: 0; padding: 10px; }
         .card { background: white; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); overflow: hidden; margin-bottom: 10px; }
-        .preview-area { width: 100%; height: 300px; background: #ccc; background-image: repeating-conic-gradient(#fff 0 90deg, #c1c1c1 0 180deg); background-size: 20px 20px; display: flex; align-items: center; justify-content: center; position: relative; }
+        .preview-area { width: 100%; height: 320px; background: #ccc; background-image: repeating-conic-gradient(#fff 0 90deg, #c1c1c1 0 180deg); background-size: 20px 20px; display: flex; align-items: center; justify-content: center; position: relative; }
         canvas { max-width: 95%; max-height: 95%; }
         .btn-row { display: flex; padding: 10px; gap: 8px; background: var(--blue); }
         button { flex: 1; padding: 12px; border: 1px solid white; border-radius: 6px; background: rgba(255,255,255,0.2); color: white; font-weight: bold; cursor: pointer; }
@@ -24,7 +24,7 @@
 
 <div id="loader">
     <div id="prog" style="font-size: 32px; font-weight: bold;">0%</div>
-    <p>Rendering High Quality Sticker...</p>
+    <p>Rendering Sticker with Fixed Stroke...</p>
 </div>
 
 <div class="card">
@@ -34,7 +34,7 @@
     </div>
     <div class="btn-row">
         <button onclick="document.getElementById('up').click()">UPLOAD GIF</button>
-        <button id="dl">DOWNLOAD STICKER</button>
+        <button id="dl">DOWNLOAD GIF</button>
     </div>
 </div>
 
@@ -44,7 +44,7 @@
         <div><label>Stroke Color</label><input type="color" id="stC" value="#000000"></div>
     </div>
     <label>Accuracy: <span id="tV">45%</span></label><input type="range" id="tS" min="0" max="100" value="45">
-    <label>Smooth Edge: <span id="fV">2</span></label><input type="range" id="fS" min="0" max="30" value="2">
+    <label>Feather (Softness): <span id="fV">2</span></label><input type="range" id="fS" min="0" max="30" value="2">
     <label>Stroke Width: <span id="wV">5px</span></label><input type="range" id="wS" min="0" max="20" value="5">
 </div>
 
@@ -135,6 +135,7 @@
         });
 
         frames.forEach((f, i) => {
+            // isExport = true எனில் ஸ்ட்ரோக் சிதையாமல் வரும்
             gif.addFrame(process(f, true), {delay: delays[i], copy: true, disposal: 2});
         });
 
@@ -142,7 +143,7 @@
         gif.on('finished', b => {
             const a = document.createElement('a'); 
             a.href = URL.createObjectURL(b); 
-            a.download = "sticker_fixed.gif"; 
+            a.download = "fixed_sticker.gif"; 
             a.click();
             loader.style.display = 'none';
         });
