@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pro GIF Sticker Maker</title>
+    <title>Pro GIF Sticker - Auto & Manual BG</title>
     
     <script src="https://unpkg.com/gif-frames/dist/gif-frames.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
@@ -11,34 +11,20 @@
     <style>
         :root { --blue: #4a90e2; --bg: #f8f9fa; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 10px; }
-        
         .card { background: white; border-radius: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.08); overflow: hidden; margin-bottom: 15px; border: 1px solid #eee; }
         h2 { font-size: 14px; background: #fff; color: var(--blue); padding: 15px; margin: 0; text-align: center; border-bottom: 1px solid #f0f0f0; text-transform: uppercase; }
-        
-        .preview-area { 
-            width: 100%; height: 320px; position: relative; 
-            background-color: #e5e5e5;
-            background-image: linear-gradient(45deg, #d1d1d1 25%, transparent 25%), linear-gradient(-45deg, #d1d1d1 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #d1d1d1 75%), linear-gradient(-45deg, transparent 75%, #d1d1d1 75%);
-            background-size: 20px 20px;
-            display: flex; align-items: center; justify-content: center; overflow: hidden;
-        }
+        .preview-area { width: 100%; height: 320px; position: relative; background-color: #e5e5e5; background-image: linear-gradient(45deg, #d1d1d1 25%, transparent 25%), linear-gradient(-45deg, #d1d1d1 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #d1d1d1 75%), linear-gradient(-45deg, transparent 75%, #d1d1d1 75%); background-size: 20px 20px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
         canvas { max-width: 98%; max-height: 98%; }
-
         .btn-row { background: var(--blue); display: flex; padding: 12px; gap: 8px; }
         button { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 12px; font-size: 13px; border-radius: 8px; flex: 1; font-weight: 600; cursor: pointer; }
-
         .settings { padding: 20px; }
         .control-item { margin-bottom: 20px; }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        
         label { display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; color: #555; margin-bottom: 8px; }
         label span { color: var(--blue); }
-        
         input[type="range"] { width: 100%; height: 6px; background: #ddd; border-radius: 5px; appearance: none; outline: none; }
         input[type="range"]::-webkit-slider-thumb { appearance: none; width: 20px; height: 20px; background: var(--blue); border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        
         input[type="color"] { width: 100%; height: 45px; border: 2px solid #eee; border-radius: 10px; cursor: pointer; background: none; }
-
         #loader { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; color: white; }
         .spinner { width: 40px; height: 40px; border: 4px solid #333; border-top: 4px solid #fff; border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -48,25 +34,25 @@
 
 <div id="loader">
     <div class="spinner"></div>
-    <div id="prog" style="margin-top:15px; font-size:20px;">Loading Frames...</div>
+    <div id="prog" style="margin-top:15px; font-size:20px;">Processing...</div>
 </div>
 
 <div class="card">
-    <h2>Ultra-Accurate Preview</h2>
+    <h2>Auto BG Detection Mode</h2>
     <div class="preview-area">
         <canvas id="c1"></canvas>
         <input type="file" id="up" accept="image/gif" style="position:absolute; inset:0; opacity:0; cursor:pointer;">
     </div>
     <div class="btn-row">
         <button onclick="document.getElementById('up').click()">Upload GIF</button>
-        <button id="dl">Download Result</button>
+        <button id="dl">Export Result</button>
     </div>
 </div>
 
 <div class="card settings">
     <div class="grid-2">
         <div class="control-item">
-            <label>BG Color</label>
+            <label>BG Color (Manual)</label>
             <input type="color" id="bgC" value="#00ff00">
         </div>
         <div class="control-item">
@@ -76,12 +62,12 @@
     </div>
 
     <div class="control-item">
-        <label>Accuracy <span id="tV">45%</span></label>
+        <label>Accuracy (Auto/Manual) <span id="tV">45%</span></label>
         <input type="range" id="tS" min="0" max="100" value="45">
     </div>
 
     <div class="control-item">
-        <label>Feather <span id="fV">2</span></label>
+        <label>Feather (Edge Smooth) <span id="fV">2</span></label>
         <input type="range" id="fS" min="0" max="30" value="2">
     </div>
 
@@ -104,36 +90,35 @@
 
     let frames = [], delays = [], cur = 0, tid = null;
 
-    // --- UPLOAD & PREVIEW FIX ---
     up.onchange = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
-
         loader.style.display = 'flex';
-        prog.innerText = "Extracting GIF...";
+        prog.innerText = "Auto-Detecting BG...";
 
-        try {
-            const url = URL.createObjectURL(file);
-            // gifFrames லைப்ரரி மூலம் ஃபிரேம்களைப் பிரித்தல்
-            const res = await gifFrames({ url: url, frames: 'all', outputType: 'canvas' });
-            
-            frames = res.map(f => f.getImage());
-            delays = res.map(f => f.frameInfo.delay * 10);
-            
-            c1.width = frames[0].width;
-            c1.height = frames[0].height;
+        const url = URL.createObjectURL(file);
+        const res = await gifFrames({ url: url, frames: 'all', outputType: 'canvas' });
+        
+        frames = res.map(f => f.getImage());
+        delays = res.map(f => f.frameInfo.delay * 10);
+        c1.width = frames[0].width;
+        c1.height = frames[0].height;
 
-            if (tid) clearInterval(tid);
-            tid = setInterval(() => {
-                draw(cur);
-                cur = (cur + 1) % frames.length;
-            }, 100);
+        // --- AUTO BG DETECTION LOGIC ---
+        // முதல் பிரேமின் Top-Left பிக்சலை எடுக்கிறது
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = c1.width; tempCanvas.height = c1.height;
+        const tempCtx = tempCanvas.getContext('2d');
+        tempCtx.drawImage(frames[0], 0, 0);
+        const pixelData = tempCtx.getImageData(5, 5, 1, 1).data; // 5x5 பிக்சல் தள்ளி எடுக்கிறது (சேஃப்டிக்கு)
+        
+        // Auto-Detected நிறத்தை Color Picker-க்கு மாற்றுகிறது
+        const detectedHex = "#" + ((1 << 24) + (pixelData[0] << 16) + (pixelData[1] << 8) + pixelData[2]).toString(16).slice(1);
+        bgC.value = detectedHex;
 
-            loader.style.display = 'none';
-        } catch (err) {
-            alert("Error loading GIF. Please try another file.");
-            loader.style.display = 'none';
-        }
+        if (tid) clearInterval(tid);
+        tid = setInterval(() => { draw(cur); cur = (cur + 1) % frames.length; }, 100);
+        loader.style.display = 'none';
     };
 
     function process(img) {
@@ -146,7 +131,6 @@
         const target = hex(bgC.value), tol = tS.value * 2.55, feather = fS.value * 2;
         const shrink = parseInt(eS.value);
 
-        // 1. BG Remove
         for (let i = 0; i < d.length; i += 4) {
             const diff = Math.sqrt((d[i]-target.r)**2 + (d[i+1]-target.g)**2 + (d[i+2]-target.b)**2);
             if (diff < tol) d[i+3] = 0;
@@ -154,7 +138,6 @@
         }
         tx.putImageData(id, 0, 0);
 
-        // 2. Shrink
         if (shrink > 0) {
             tx.globalCompositeOperation = 'destination-out';
             for (let x = -shrink; x <= shrink; x++) {
@@ -165,7 +148,6 @@
             tx.globalCompositeOperation = 'source-over';
         }
 
-        // 3. Pro Stroke (Edge Only)
         const stroke = parseInt(wS.value);
         if (stroke > 0) {
             const sCanvas = document.createElement('canvas');
@@ -199,9 +181,9 @@
         const b = await fetch('https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.worker.js').then(r => r.blob());
         const gif = new GIF({ workers: 2, quality: 5, workerScript: URL.createObjectURL(b), transparent: 'rgba(0,0,0,0)', width: c1.width, height: c1.height });
         frames.forEach((f, i) => gif.addFrame(process(f), {delay: delays[i], copy: true}));
-        gif.on('progress', p => prog.innerText = "Encoding: " + Math.round(p * 100) + "%");
+        gif.on('progress', p => prog.innerText = "Saving: " + Math.round(p * 100) + "%");
         gif.on('finished', b => {
-            const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = "sticker.gif"; a.click();
+            const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = "auto_bg_sticker.gif"; a.click();
             loader.style.display = 'none';
         });
         gif.render();
