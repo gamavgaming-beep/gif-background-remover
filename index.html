@@ -3,14 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Giphy Professional Studio</title>
+    <title>Giphy Studio Pro - Alpha Preview</title>
     <script src="https://unpkg.com/gif-frames/dist/gif-frames.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
     <style>
         :root { --primary: #00ff62; --bg: #0a0a0a; --card: #151515; }
         body { font-family: 'Inter', sans-serif; background: var(--bg); color: white; margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; }
         .studio-card { background: var(--card); border-radius: 24px; width: 100%; max-width: 500px; padding: 20px; box-shadow: 0 15px 50px rgba(0,0,0,0.5); border: 1px solid #222; }
-        .screen { width: 100%; aspect-ratio: 1/1; background: #000; border-radius: 16px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; border: 1px solid #333; margin-bottom: 15px; }
+        
+        /* Alpha Transparency Grid */
+        .screen { 
+            width: 100%; 
+            aspect-ratio: 1/1; 
+            background-color: #fff;
+            background-image: 
+                linear-gradient(45deg, #ccc 25%, transparent 25%), 
+                linear-gradient(-45deg, #ccc 25%, transparent 25%), 
+                linear-gradient(45deg, transparent 75%, #ccc 75%), 
+                linear-gradient(-45deg, transparent 75%, #ccc 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+            border-radius: 16px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            position: relative; 
+            overflow: hidden; 
+            border: 1px solid #333; 
+            margin-bottom: 15px; 
+        }
+        
         canvas { max-width: 100%; max-height: 100%; image-rendering: auto; }
         .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
         .meta-box { background: #1e1e1e; padding: 10px; border-radius: 12px; border: 1px solid #333; }
@@ -31,14 +53,14 @@
 
 <div id="loader">
     <h1 id="prog" style="color:var(--primary)">0%</h1>
-    <p id="lMsg">Analyzing & Processing...</p>
+    <p id="lMsg">Rendering Giphy Sticker...</p>
 </div>
 
 <div class="studio-card">
     <div class="screen">
         <canvas id="c"></canvas>
         <input type="file" id="up" accept="image/gif" style="position:absolute; inset:0; opacity:0; cursor:pointer;">
-        <div id="empty">Click to Import GIF</div>
+        <div id="empty" style="color:#000; font-weight:bold;">CLICK TO IMPORT GIF</div>
     </div>
 
     <div class="meta-grid">
@@ -54,7 +76,7 @@
         <label>Output Resolution <span id="resV">540px</span></label>
         <input type="range" id="resS" min="200" max="800" step="10" value="540">
         
-        <label style="margin-top:15px;">Export Frame Rate (FPS) <span id="fpsV">30</span></label>
+        <label style="margin-top:15px;">Export FPS (Smoothness) <span id="fpsV">30</span></label>
         <input type="range" id="fpsS" min="5" max="60" step="1" value="30">
     </div>
 
@@ -64,17 +86,17 @@
 
         <div class="color-group">
             <div><label>Remove BG</label><input type="color" id="bgC" value="#ffffff"></div>
-            <div><label>Stroke</label><input type="color" id="stC" value="#000000"></div>
+            <div><label>Stroke Color</label><input type="color" id="stC" value="#000000"></div>
         </div>
         
         <label style="margin-top:15px;">Stroke Width <span id="wV">8px</span></label>
         <input type="range" id="wS" min="0" max="30" value="8">
         
-        <label>BG Tolerance <span id="tV">45%</span></label>
+        <label>Alpha Accuracy <span id="tV">45%</span></label>
         <input type="range" id="tS" min="0" max="100" value="45">
     </div>
 
-    <button class="btn btn-exp" id="dl">GENERATE GIPHY STICKER</button>
+    <button class="btn btn-exp" id="dl">GENERATE TRANSPARENT GIF</button>
 </div>
 
 <script>
@@ -92,15 +114,10 @@
         try {
             const res = await gifFrames({ url: URL.createObjectURL(file), frames: 'all', outputType: 'canvas' });
             frames = res.map(f => f.getImage());
-            
-            // Calculate Original Metadata
             ow = frames[0].width; oh = frames[0].height;
             const avgDelay = res.reduce((acc, f) => acc + (f.frameInfo.delay || 10), 0) / res.length;
-            const originalFPS = Math.round(100 / avgDelay);
-            
             document.getElementById('oS').innerText = `${ow}x${oh}`;
-            document.getElementById('oF').innerText = `${originalFPS} FPS`;
-            
+            document.getElementById('oF').innerText = `${Math.round(100 / avgDelay)} FPS`;
             updateCanvas();
             startLoop();
         } catch (err) { alert("GIF load error."); }
@@ -113,13 +130,11 @@
         document.getElementById('tRes').innerText = `${size}x${size}`;
         document.getElementById('resV').innerText = `${size}px`;
         document.getElementById('tF').innerText = `${fpsS.value} FPS`;
-        document.getElementById('fpsV').innerText = fpsS.value;
     }
 
     function startLoop() {
         if(tid) clearInterval(tid);
-        const interval = 1000 / parseInt(fpsS.value);
-        tid = setInterval(() => { draw(); cur = (cur+1)%frames.length; }, interval);
+        tid = setInterval(() => { draw(); cur = (cur+1)%frames.length; }, 1000 / parseInt(fpsS.value));
     }
 
     function process(img, isExport = false) {
@@ -127,7 +142,6 @@
         const tc = document.createElement('canvas');
         tc.width = size; tc.height = size;
         const tx = tc.getContext('2d');
-        
         const scale = parseInt(scS.value) / 100;
         const aspect = ow / oh;
         let dw, dh;
@@ -178,19 +192,11 @@
         if(!frames.length) return;
         loader.style.display = 'flex';
         const b = await fetch('https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.worker.js').then(r => r.blob());
-        const fps = parseInt(fpsS.value);
-        const gif = new GIF({ 
-            workers: 4, quality: 5, workerScript: URL.createObjectURL(b), 
-            transparent: 'rgba(0,0,0,0)', width: c.width, height: c.height 
-        });
-
-        frames.forEach((f) => {
-            gif.addFrame(process(f, true), {delay: 1000/fps, copy: true, disposal: 2});
-        });
-
+        const gif = new GIF({ workers: 4, quality: 5, workerScript: URL.createObjectURL(b), transparent: 'rgba(0,0,0,0)', width: c.width, height: c.height });
+        frames.forEach((f) => gif.addFrame(process(f, true), {delay: 1000/parseInt(fpsS.value), copy: true, disposal: 2}));
         gif.on('progress', p => prog.innerText = Math.round(p * 100) + "%");
         gif.on('finished', b => {
-            const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `giphy_${c.width}px_${fps}fps.gif`; a.click();
+            const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `giphy_sticker.gif`; a.click();
             loader.style.display = 'none';
         });
         gif.render();
@@ -199,7 +205,8 @@
     [resS, fpsS, scS, tS, wS, bgC, stC].forEach(el => el.oninput = () => {
         updateCanvas();
         if(el.id === 'fpsS') startLoop();
-        document.getElementById(el.id.replace('S','V')).innerText = el.value + (el.id==='wS'?'px':el.id==='scS'?'%':el.id==='tS'?'%':'');
+        const display = document.getElementById(el.id.replace('S','V'));
+        if(display) display.innerText = el.value + (el.id==='wS'?'px':el.id==='fpsS'?'':'%');
         if(frames.length) draw();
     });
 </script>
