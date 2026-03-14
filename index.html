@@ -3,20 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sticker Maker - No Black Screen Fix</title>
+    <title>Pro Sticker Maker - Resize & Scale</title>
     <script src="https://unpkg.com/gif-frames/dist/gif-frames.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
     <style>
         :root { --primary: #007bff; }
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; padding: 20px; display: flex; flex-direction: column; align-items: center; }
-        .container { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 450px; }
-        .preview-box { width: 100%; height: 350px; background: #eee; background-image: repeating-conic-gradient(#fff 0 90deg, #d5d5d5 0 180deg); background-size: 20px 20px; border-radius: 15px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; border: 2px solid #ddd; }
-        canvas { max-width: 100%; max-height: 100%; object-fit: contain; }
-        .row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
-        label { font-size: 12px; font-weight: bold; color: #444; display: block; margin-top: 10px; }
-        input[type="range"] { width: 100%; accent-color: var(--primary); }
-        input[type="color"] { width: 100%; height: 40px; border-radius: 8px; border: 1px solid #ddd; cursor: pointer; }
-        .btn { width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 16px; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; padding: 15px; display: flex; flex-direction: column; align-items: center; }
+        .container { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 480px; }
+        .preview-box { width: 100%; height: 320px; background: #eee; background-image: repeating-conic-gradient(#fff 0 90deg, #d5d5d5 0 180deg); background-size: 20px 20px; border-radius: 15px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; border: 2px solid #ddd; }
+        canvas { image-rendering: pixelated; }
+        .info-panel { background: #e9ecef; padding: 10px; border-radius: 8px; margin: 15px 0; font-size: 13px; display: flex; justify-content: space-between; font-weight: bold; color: #333; }
+        .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px; }
+        label { font-size: 12px; font-weight: bold; color: #555; display: block; margin-top: 8px; }
+        input[type="range"] { width: 100%; accent-color: var(--primary); margin-bottom: 5px; }
+        input[type="color"] { width: 100%; height: 35px; border-radius: 5px; border: 1px solid #ddd; cursor: pointer; }
+        .btn { width: 100%; padding: 14px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 15px; }
         .btn-up { background: var(--primary); color: white; }
         .btn-dl { background: #28a745; color: white; }
         #loader { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; color: white; }
@@ -26,7 +27,7 @@
 
 <div id="loader">
     <h1 id="prog">0%</h1>
-    <p>Removing Background & Adding Stroke...</p>
+    <p>Processing High Resolution Frame...</p>
 </div>
 
 <div class="container">
@@ -34,20 +35,24 @@
         <canvas id="c"></canvas>
         <input type="file" id="up" accept="image/gif" style="position:absolute; inset:0; opacity:0; cursor:pointer;">
     </div>
+
+    <div class="info-panel">
+        <span>Original: <span id="origSize">0x0</span></span>
+        <span>Output: <span id="outSize">0x0</span></span>
+    </div>
     
     <button class="btn btn-up" onclick="document.getElementById('up').click()">UPLOAD GIF</button>
     <button class="btn btn-dl" id="dl">DOWNLOAD STICKER</button>
 
     <div class="row">
-        <div><label>Remove BG Color</label><input type="color" id="bgC" value="#ffffff"></div>
-        <div><label>Stroke Color</label><input type="color" id="stC" value="#000000"></div>
+        <div><label>Scale (Resize)</label><input type="range" id="scaleS" min="0.1" max="2.0" step="0.1" value="1.0"></div>
+        <div><label>Accuracy</label><input type="range" id="tS" min="0" max="100" value="45"></div>
     </div>
 
-    <label>Accuracy: <span id="tV">45%</span></label>
-    <input type="range" id="tS" min="0" max="100" value="45">
-
-    <label>Feather (Smooth Edge): <span id="fV">2</span></label>
-    <input type="range" id="fS" min="0" max="30" value="2">
+    <div class="row">
+        <div><label>Remove BG</label><input type="color" id="bgC" value="#ffffff"></div>
+        <div><label>Stroke Color</label><input type="color" id="stC" value="#000000"></div>
+    </div>
 
     <label>Stroke Width: <span id="wV">6px</span></label>
     <input type="range" id="wS" min="0" max="25" value="6">
@@ -55,10 +60,11 @@
 
 <script>
     const up = document.getElementById('up'), c = document.getElementById('c'), ctx = c.getContext('2d');
-    const bgC = document.getElementById('bgC'), stC = document.getElementById('stC'), tS = document.getElementById('tS'), fS = document.getElementById('fS'), wS = document.getElementById('wS');
+    const bgC = document.getElementById('bgC'), stC = document.getElementById('stC'), tS = document.getElementById('tS'), wS = document.getElementById('wS'), scaleS = document.getElementById('scaleS');
     const dl = document.getElementById('dl'), loader = document.getElementById('loader'), prog = document.getElementById('prog');
+    const origSizeDisp = document.getElementById('origSize'), outSizeDisp = document.getElementById('outSize');
 
-    let frames = [], delays = [], cur = 0, tid = null;
+    let frames = [], delays = [], cur = 0, tid = null, originalW = 0, originalH = 0;
 
     up.onchange = async (e) => {
         const file = e.target.files[0]; if(!file) return;
@@ -67,35 +73,39 @@
         frames = res.map(f => f.getImage());
         delays = res.map(f => f.frameInfo.delay * 10);
         
-        // Reset canvas to GIF size to prevent black borders
-        c.width = frames[0].width; c.height = frames[0].height;
+        originalW = frames[0].width;
+        originalH = frames[0].height;
+        origSizeDisp.innerText = `${originalW}x${originalH}`;
+        updateCanvasSize();
         
         if(tid) clearInterval(tid);
         tid = setInterval(() => { draw(cur); cur = (cur+1)%frames.length; }, 100);
         loader.style.display = 'none';
     };
 
+    function updateCanvasSize() {
+        const scale = parseFloat(scaleS.value);
+        c.width = Math.round(originalW * scale);
+        c.height = Math.round(originalH * scale);
+        outSizeDisp.innerText = `${c.width}x${c.height}`;
+    }
+
     function process(img, isExport = false) {
         const tc = document.createElement('canvas');
         tc.width = c.width; tc.height = c.height;
         const tx = tc.getContext('2d');
-        
-        // Ensure transparent base
         tx.clearRect(0, 0, tc.width, tc.height);
-        tx.drawImage(img, 0, 0);
+        
+        // Dynamic Scaling
+        tx.drawImage(img, 0, 0, tc.width, tc.height);
 
         const id = tx.getImageData(0,0,tc.width,tc.height), d = id.data;
-        const target = hex(bgC.value), tol = tS.value * 2.55, feather = fS.value * 2;
+        const target = hex(bgC.value), tol = tS.value * 2.55;
 
         for (let i = 0; i < d.length; i += 4) {
             const diff = Math.sqrt((d[i]-target.r)**2 + (d[i+1]-target.g)**2 + (d[i+2]-target.b)**2);
             if (diff < tol) d[i+3] = 0;
-            else if (diff < tol + feather) {
-                let alpha = ((diff - tol) / feather) * 255;
-                d[i+3] = isExport ? (alpha > 128 ? 255 : 0) : alpha;
-            } else if (isExport) {
-                d[i+3] = 255;
-            }
+            else if (isExport) d[i+3] = 255;
         }
         tx.putImageData(id, 0, 0);
 
@@ -105,55 +115,3 @@
             sc.width = tc.width; sc.height = tc.height;
             const sx = sc.getContext('2d');
             sx.fillStyle = stC.value;
-            for(let x = -stroke; x <= stroke; x++) {
-                for(let y = -stroke; y <= stroke; y++) {
-                    if(x*x + y*y <= stroke*stroke) sx.drawImage(tc, x, y);
-                }
-            }
-            sx.globalCompositeOperation = 'source-in';
-            sx.fillStyle = stC.value;
-            sx.fillRect(0,0,sc.width, sc.height);
-            sx.globalCompositeOperation = 'source-over';
-            sx.drawImage(tc, 0, 0);
-            return sc;
-        }
-        return tc;
-    }
-
-    function draw(i) {
-        if(!frames[i]) return;
-        ctx.clearRect(0, 0, c.width, c.height); // This line removes the black screen
-        ctx.drawImage(process(frames[i], false), 0, 0);
-    }
-
-    dl.onclick = async () => {
-        if(!frames.length) return;
-        loader.style.display = 'flex';
-        const b = await fetch('https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.worker.js').then(r => r.blob());
-        const gif = new GIF({ 
-            workers: 4, quality: 1, 
-            workerScript: URL.createObjectURL(b), 
-            transparent: 'rgba(0,0,0,0)',
-            width: c.width, height: c.height 
-        });
-
-        frames.forEach((f, i) => {
-            gif.addFrame(process(f, true), {delay: delays[i], copy: true, disposal: 2});
-        });
-
-        gif.on('progress', p => prog.innerText = Math.round(p * 100) + "%");
-        gif.on('finished', b => {
-            const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = "clean_sticker.gif"; a.click();
-            loader.style.display = 'none';
-        });
-        gif.render();
-    };
-
-    function hex(h) { return {r:parseInt(h.slice(1,3),16), g:parseInt(h.slice(3,5),16), b:parseInt(h.slice(5,7),16)}; }
-    [tS, fS, wS, bgC, stC].forEach(el => el.oninput = () => {
-        document.getElementById(el.id.replace('S', 'V')).innerText = el.value + (el.id === 'wS' ? 'px' : (el.id === 'tS' ? '%' : ''));
-        if(frames.length) draw(cur);
-    });
-</script>
-</body>
-</html>
