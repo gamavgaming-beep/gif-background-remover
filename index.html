@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GIF Editor - Black Stroke Fix</title>
+    <title>GIF Editor - Feather & Alpha Pro</title>
     
     <script src="https://unpkg.com/gif-frames/dist/gif-frames.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
@@ -15,23 +15,23 @@
         h2 { font-size: 15px; background: #fff; color: var(--blue); padding: 12px; margin: 0; text-align: center; border-bottom: 1px solid #eee; }
         
         .preview-area {
-            width: 100%; height: 280px; position: relative;
+            width: 100%; height: 300px; position: relative;
             background-image: linear-gradient(45deg, #ddd 25%, transparent 25%), linear-gradient(-45deg, #ddd 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ddd 75%), linear-gradient(-45deg, transparent 75%, #ddd 75%);
             background-size: 16px 16px; display: flex; align-items: center; justify-content: center; overflow: hidden;
         }
-        canvas { max-width: 95%; max-height: 95%; image-rendering: pixelated; }
+        canvas { max-width: 95%; max-height: 95%; image-rendering: auto; }
 
         .btn-row { background: var(--blue); display: flex; padding: 10px; gap: 5px; }
-        button { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 10px; font-size: 12px; border-radius: 6px; flex: 1; font-weight: bold; cursor: pointer; }
+        button { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 12px; font-size: 13px; border-radius: 6px; flex: 1; font-weight: bold; cursor: pointer; }
 
         .settings { padding: 15px; }
         .control-item { margin-bottom: 15px; }
-        label { display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; color: #444; margin-bottom: 5px; }
-        input[type="range"] { width: 100%; cursor: pointer; }
+        label { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; color: #444; margin-bottom: 5px; }
+        label span { color: var(--blue); }
+        input[type="range"] { width: 100%; cursor: pointer; height: 30px; }
         
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .color-pickers { display: flex; gap: 10px; margin-bottom: 10px; }
-        input[type="color"] { flex: 1; height: 35px; border: none; border-radius: 4px; }
+        input[type="color"] { width: 100%; height: 40px; border: none; border-radius: 4px; cursor: pointer; }
 
         #loader {
             position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none;
@@ -46,63 +46,56 @@
     <div id="loader">
         <div class="ring"></div>
         <div id="prog" style="margin-top:15px; font-size:20px;">0%</div>
-        <p>Creating GIF with Stroke...</p>
+        <p>Applying Feather & Alpha...</p>
     </div>
 
     <div class="card">
-        <h2>GIF Preview</h2>
+        <h2>Live Preview</h2>
         <div class="preview-area">
             <canvas id="c1"></canvas>
             <input type="file" id="up" accept="image/gif" style="position:absolute; inset:0; opacity:0; cursor:pointer;">
         </div>
         <div class="btn-row">
             <button onclick="document.getElementById('up').click()">Import GIF</button>
-            <button id="dl">Download Result</button>
+            <button id="dl">Download Pro GIF</button>
         </div>
     </div>
 
     <div class="card settings">
         <div class="color-pickers">
             <div style="flex:1">
-                <label>Remove Background</label>
+                <label>Target BG</label>
                 <input type="color" id="bgC" value="#00ff00">
             </div>
             <div style="flex:1">
                 <label>Stroke Color</label>
-                <input type="color" id="stC" value="#000000"> </div>
-        </div>
-
-        <div class="grid-2">
-            <div class="control-item">
-                <label>Stroke Size: <span id="wV">0</span>px</label>
-                <input type="range" id="wS" min="0" max="15" value="0">
-            </div>
-            <div class="control-item">
-                <label>Accuracy: <span id="tV">45</span>%</label>
-                <input type="range" id="tS" min="0" max="100" value="45">
+                <input type="color" id="stC" value="#000000">
             </div>
         </div>
 
-        <h3 style="font-size: 12px; margin: 10px 0; color: #888; border-top: 1px solid #eee; padding-top: 10px;">Crop & Scale</h3>
-        <div class="grid-2">
-            <div class="control-item"><label>Left: <span id="lV">0</span>px</label><input type="range" id="cL" value="0"></div>
-            <div class="control-item"><label>Right: <span id="rV">0</span>px</label><input type="range" id="cR" value="0"></div>
-            <div class="control-item"><label>Top: <span id="tV_c">0</span>px</label><input type="range" id="cT" value="0"></div>
-            <div class="control-item"><label>Bottom: <span id="bV">0</span>px</label><input type="range" id="cB" value="0"></div>
-        </div>
         <div class="control-item">
-            <label>Scale: <span id="scV">100</span>%</label>
-            <input type="range" id="scS" min="10" max="200" value="100">
+            <label>Feather (Soft Edges) <span id="fV">1</span></label>
+            <input type="range" id="fS" min="0" max="25" value="1">
+        </div>
+
+        <div class="control-item">
+            <label>BG Accuracy (Tolerance) <span id="tV">45%</span></label>
+            <input type="range" id="tS" min="0" max="100" value="45">
+        </div>
+
+        <div class="control-item">
+            <label>Stroke Size <span id="wV">0</span>px</label>
+            <input type="range" id="wS" min="0" max="15" value="0">
         </div>
     </div>
 
 <script>
     const up = document.getElementById('up'), c1 = document.getElementById('c1'), ctx1 = c1.getContext('2d');
-    const bgC = document.getElementById('bgC'), stC = document.getElementById('stC'), tS = document.getElementById('tS'), wS = document.getElementById('wS');
-    const cL = document.getElementById('cL'), cR = document.getElementById('cR'), cT = document.getElementById('cT'), cB = document.getElementById('cB'), scS = document.getElementById('scS');
+    const bgC = document.getElementById('bgC'), stC = document.getElementById('stC'), tS = document.getElementById('tS');
+    const wS = document.getElementById('wS'), fS = document.getElementById('fS');
     const dl = document.getElementById('dl'), loader = document.getElementById('loader'), prog = document.getElementById('prog');
 
-    let frames = [], delays = [], cur = 0, tid = null, origW = 0, origH = 0;
+    let frames = [], delays = [], cur = 0, tid = null;
 
     up.onchange = async (e) => {
         const file = e.target.files[0];
@@ -110,61 +103,53 @@
         const res = await gifFrames({ url: URL.createObjectURL(file), frames: 'all', outputType: 'canvas' });
         frames = res.map(f => f.getImage());
         delays = res.map(f => f.frameInfo.delay * 10);
-        origW = frames[0].width; origH = frames[0].height;
-        [cL, cR].forEach(s => s.max = Math.floor(origW/2.1));
-        [cT, cB].forEach(s => s.max = Math.floor(origH/2.1));
+        c1.width = frames[0].width; c1.height = frames[0].height;
         if(tid) clearInterval(tid);
         tid = setInterval(() => { draw(cur); cur = (cur + 1) % frames.length; }, 100);
     };
 
     function process(img) {
-        const cropW = origW - cL.value - cR.value;
-        const cropH = origH - cT.value - cB.value;
-        const scale = scS.value / 100;
-        const finalW = Math.max(1, Math.floor(cropW * scale));
-        const finalH = Math.max(1, Math.floor(cropH * scale));
-
         const fC = document.createElement('canvas');
-        fC.width = finalW; fC.height = finalH;
+        fC.width = c1.width; fC.height = c1.height;
         const fx = fC.getContext('2d');
-        fx.drawImage(img, cL.value, cT.value, cropW, cropH, 0, 0, finalW, finalH);
+        fx.drawImage(img, 0, 0);
         
-        const id = fx.getImageData(0,0,finalW,finalH), d = id.data, target = hex(bgC.value), tol = tS.value * 2.55;
+        const id = fx.getImageData(0,0,fC.width,fC.height), d = id.data;
+        const target = hex(bgC.value), tol = tS.value * 2.55, feather = fS.value * 2;
+
+        // FEATHER & ALPHA LOGIC
         for (let i = 0; i < d.length; i += 4) {
-            if(Math.sqrt((d[i]-target.r)**2 + (d[i+1]-target.g)**2 + (d[i+2]-target.b)**2) < tol) d[i+3] = 0;
+            const diff = Math.sqrt((d[i]-target.r)**2 + (d[i+1]-target.g)**2 + (d[i+2]-target.b)**2);
+            
+            if (diff < tol) {
+                d[i+3] = 0; // முழுமையாக நீக்குதல்
+            } else if (diff < tol + feather) {
+                // ALPHA FEATHERING: ஓரங்களில் மென்மையாக மாற்றுதல்
+                const alpha = ((diff - tol) / feather) * 255;
+                d[i+3] = alpha;
+            }
         }
         fx.putImageData(id, 0, 0);
 
+        // STROKE LOGIC
         const stroke = parseInt(wS.value);
         if(stroke > 0) {
             const outC = document.createElement('canvas');
-            outC.width = finalW; outC.height = finalH;
+            outC.width = fC.width; outC.height = fC.height;
             const ox = outC.getContext('2d');
 
-            // --- BLACK STROKE FIX LOGIC ---
-            // ஸ்ட்ரோக் நிறத்தை ஒரு தனி லேயராக வரைந்து பிறகு படத்தின் மேல் சேர்க்கிறோம்
-            const strokeColor = stC.value;
-            ox.fillStyle = strokeColor;
-            
-            // உருவத்தைச் சுற்றி ஸ்ட்ரோக் வரைதல்
             for (let x = -stroke; x <= stroke; x++) {
                 for (let y = -stroke; y <= stroke; y++) {
-                    if (x * x + y * y <= stroke * stroke) {
-                        ox.drawImage(fC, x, y);
-                    }
+                    if (x * x + y * y <= stroke * stroke) ox.drawImage(fC, x, y);
                 }
             }
-            // ஸ்ட்ரோக் நிறத்தை அப்ளை செய்தல்
             ox.globalCompositeOperation = 'source-in';
-            ox.fillRect(0, 0, finalW, finalH);
+            ox.fillStyle = stC.value;
+            ox.fillRect(0, 0, outC.width, outC.height);
             
-            // மீண்டும் ஒரிஜினல் உருவத்தை அதன் மேல் வரைதல்
             ox.globalCompositeOperation = 'destination-over';
             ox.drawImage(fC, 0, 0);
-            
-            // கடைசியாகப் படத்தை லேயர் செய்ய 'source-over'
             ox.globalCompositeOperation = 'source-over';
-
             return outC;
         }
         return fC;
@@ -172,7 +157,6 @@
 
     function draw(i) {
         const p = process(frames[i]);
-        c1.width = p.width; c1.height = p.height;
         ctx1.clearRect(0,0,c1.width, c1.height);
         ctx1.drawImage(p, 0, 0);
     }
@@ -182,27 +166,25 @@
         loader.style.display = 'flex';
         const b = await fetch('https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.worker.js').then(r => r.blob());
         const u = URL.createObjectURL(b);
-        const sample = process(frames[0]);
-        const gif = new GIF({ workers: 2, quality: 10, workerScript: u, transparent: 0x000000, width: sample.width, height: sample.height });
-        frames.forEach((f) => gif.addFrame(process(f), {delay: delays[0], copy: true}));
+        const gif = new GIF({ workers: 2, quality: 5, workerScript: u, transparent: 'rgba(0,0,0,0)', width: c1.width, height: c1.height });
+        frames.forEach((f, i) => gif.addFrame(process(f), {delay: delays[i], copy: true}));
         gif.on('progress', p => prog.innerText = Math.round(p * 100) + "%");
         gif.on('finished', b => {
             const a = document.createElement('a'); a.href = URL.createObjectURL(b);
-            a.download = "black_stroke_fixed.gif"; a.click();
+            a.download = "feathered_pro_sticker.gif"; a.click();
             loader.style.display = 'none';
         });
         gif.render();
     };
 
     function hex(h) { return {r:parseInt(h.slice(1,3),16), g:parseInt(h.slice(3,5),16), b:parseInt(h.slice(5,7),16)}; }
-    [tS, wS, cL, cR, cT, cB, scS].forEach(el => {
-        el.oninput = () => {
-            const displayId = el.id === 'cT' ? 'tV_c' : (el.id.replace('S', 'V').replace('L', 'V').replace('R', 'V').replace('B', 'V'));
-            if(document.getElementById(displayId)) document.getElementById(displayId).innerText = el.value;
-            if(frames.length) draw(cur);
-        }
-    });
+    
+    // Live UI Updates
+    fS.oninput = () => { document.getElementById('fV').innerText = fS.value; if(frames.length) draw(cur); };
+    wS.oninput = () => { document.getElementById('wV').innerText = wS.value; if(frames.length) draw(cur); };
+    tS.oninput = () => { document.getElementById('tV').innerText = tS.value + "%"; if(frames.length) draw(cur); };
+    bgC.oninput = () => { if(frames.length) draw(cur); };
+    stC.oninput = () => { if(frames.length) draw(cur); };
 </script>
 </body>
 </html>
-
