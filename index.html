@@ -1,273 +1,226 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Giphy Professional Studio</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UID CHANGER TOOL</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: white;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
 
-<script src="https://unpkg.com/gif-frames/dist/gif-frames.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
+    .card {
+      backdrop-filter: blur(15px);
+      background: rgba(0, 0, 0, 0.05);
+      border-radius: 20px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+      padding: 30px;
+      width: 90%;
+      max-width: 400px;
+      color: #333;
+      border: 1px solid rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
 
-<style>
-:root { --primary:#00ff62; --bg:#0a0a0a; --card:#151515; }
+    .notification {
+      background-color: rgba(0, 0, 0, 0.1);
+      padding: 12px;
+      border-radius: 10px;
+      font-weight: bold;
+      text-align: center;
+      text-transform: uppercase;
+    }
 
-body{
-font-family:Inter,sans-serif;
-background:var(--bg);
-color:white;
-margin:0;
-padding:15px;
-display:flex;
-flex-direction:column;
-align-items:center;
-}
+    h1 {
+      text-align: center;
+      font-size: 1.8em;
+      color: #333;
+      letter-spacing: 1px;
+    }
 
-.studio-card{
-background:var(--card);
-border-radius:24px;
-width:100%;
-max-width:500px;
-padding:20px;
-box-shadow:0 15px 50px rgba(0,0,0,0.5);
-border:1px solid #222;
-}
+    .btn-group {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
 
-.screen{
-width:100%;
-aspect-ratio:1/1;
-background:#fff;
-border-radius:16px;
-display:flex;
-align-items:center;
-justify-content:center;
-position:relative;
-overflow:hidden;
-border:1px solid #333;
-margin-bottom:15px;
-}
+    input[type="file"] {
+      display: none;
+    }
 
-canvas{max-width:100%;max-height:100%}
+    .btn {
+      padding: 14px;
+      font-size: 1em;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      color: white;
+      background: #000;
+    }
 
-.btn{
-width:100%;
-padding:16px;
-border:none;
-border-radius:14px;
-font-weight:bold;
-cursor:pointer;
-font-size:16px;
-}
+    .btn:hover {
+      background: #333;
+    }
 
-.btn-exp{
-background:var(--primary);
-color:#000;
-}
+    .download-btn:disabled {
+      background: #ccc;
+      color: #888;
+      cursor: not-allowed;
+    }
 
-#loader{
-position:fixed;
-inset:0;
-background:rgba(0,0,0,0.95);
-display:none;
-flex-direction:column;
-align-items:center;
-justify-content:center;
-z-index:99;
-}
-</style>
+    #fileName,
+    #patternMsg {
+      margin-top: 10px;
+      font-size: 0.95em;
+      text-align: center;
+      color: #555;
+    }
+
+    .social-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin-top: 10px;
+    }
+
+    .social-btn-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(0, 0, 0, 0.1);
+      padding: 8px 15px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.3s;
+    }
+
+    .social-btn-row:hover {
+      background: rgba(0, 0, 159, 0.58);
+      transform: scale(1.02);
+    }
+
+    .social-btn-row span {
+      font-weight: bold;
+      color: #333;
+      font-size: 1em;
+    }
+
+    .social-btn-row img {
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    @media (max-width: 480px) {
+      .card {
+        padding: 20px;
+      }
+
+      h1 {
+        font-size: 1.5em;
+      }
+    }
+  </style>
 </head>
-
 <body>
-
-<div id="loader">
-<h1 id="prog" style="color:var(--primary)">0%</h1>
-</div>
-
-<div class="studio-card">
-
-<div class="screen">
-<canvas id="c"></canvas>
-<input type="file" id="up" accept="image/gif"
-style="position:absolute; inset:0; opacity:0; cursor:pointer;">
-</div>
-
-<label>Stroke Width</label>
-<input type="range" id="wS" min="0" max="30" value="8">
-
-<button class="btn btn-exp" id="dl">Generate Transparent GIF</button>
-
-</div>
-
-<script>
-
-const up=document.getElementById('up')
-const c=document.getElementById('c')
-const ctx=c.getContext('2d')
-
-const wS=document.getElementById('wS')
-const dl=document.getElementById('dl')
-
-const loader=document.getElementById('loader')
-const prog=document.getElementById('prog')
-
-let frames=[]
-let cur=0
-let tid=null
-
-c.width=500
-c.height=500
-
-up.onchange=async(e)=>{
-
-const file=e.target.files[0]
-if(!file)return
-
-loader.style.display='flex'
-
-const res=await gifFrames({
-url:URL.createObjectURL(file),
-frames:'all',
-outputType:'canvas'
-})
-
-frames=res.map(f=>f.getImage())
-
-startLoop()
-
-loader.style.display='none'
-
-}
-
-function startLoop(){
-
-if(tid)clearInterval(tid)
-
-tid=setInterval(()=>{
-draw()
-cur=(cur+1)%frames.length
-},100)
-
-}
-
-function process(img,isExport=false){
-
-const size=c.width
-
-const tc=document.createElement('canvas')
-tc.width=size
-tc.height=size
-
-const tx=tc.getContext('2d')
-
-tx.clearRect(0,0,size,size)
-
-tx.drawImage(img,0,0,size,size)
-
-const stroke=parseInt(wS.value)
-
-if(stroke>0){
-
-const sc=document.createElement('canvas')
-sc.width=size
-sc.height=size
-
-const sx=sc.getContext('2d')
-
-sx.fillStyle="#000"
-
-for(let x=-stroke;x<=stroke;x++){
-for(let y=-stroke;y<=stroke;y++){
-
-if(x*x+y*y<=stroke*stroke){
-
-sx.drawImage(tc,x,y)
-
-}
-
-}
-}
-
-sx.globalCompositeOperation="source-in"
-sx.fillRect(0,0,size,size)
-
-sx.globalCompositeOperation="source-over"
-sx.drawImage(tc,0,0)
-
-return sc
-}
-
-return tc
-
-}
-
-function draw(){
-
-if(!frames[cur])return
-
-ctx.clearRect(0,0,c.width,c.height)
-
-ctx.drawImage(process(frames[cur],false),0,0)
-
-}
-
-dl.onclick=async()=>{
-
-if(!frames.length)return
-
-loader.style.display='flex'
-
-const worker=await fetch(
-"https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.worker.js"
-).then(r=>r.blob())
-
-const gif=new GIF({
-workers:4,
-quality:5,
-workerScript:URL.createObjectURL(worker),
-transparent:"rgba(0,0,0,0)",
-width:c.width,
-height:c.height
-})
-
-frames.forEach((f)=>{
-
-const frameCanvas=process(f,true)
-
-const tempCanvas=document.createElement('canvas')
-tempCanvas.width=frameCanvas.width
-tempCanvas.height=frameCanvas.height
-
-const tempCtx=tempCanvas.getContext('2d')
-
-tempCtx.drawImage(frameCanvas,0,0)
-
-gif.addFrame(tempCtx,{
-delay:100,
-copy:true,
-disposal:2
-})
-
-})
-
-gif.on('progress',p=>{
-prog.innerText=Math.round(p*100)+"%"
-})
-
-gif.on('finished',b=>{
-
-const a=document.createElement('a')
-a.href=URL.createObjectURL(b)
-a.download="giphy_sticker.gif"
-a.click()
-
-loader.style.display='none'
-
-})
-
-gif.render()
-
-}
-
-</script>
-
+  <div class="card">
+    <div class="notification">
+      MADE BY GAMAV GAMING
+    </div>
+    <h1>UID REMOVE TOOL</h1>
+    <div class="btn-group">
+      <input type="file" id="fileInput" accept=".bytes" />
+      <button class="btn upload-btn" onclick="document.getElementById('fileInput').click()">Upload Map File</button>
+      <div id="fileName"></div>
+      <button class="btn download-btn" id="downloadBtn" disabled>Download Map File</button>
+      <div id="patternMsg"></div>
+    </div>
+    <div class="social-buttons">
+      <div class="social-btn-row" onclick="window.open('https://youtube.com/@gamavgamingofficial?si=Zs9A03nw_gkF8sbJ', '_blank')">
+        <span>CLICK HERE</span>
+        <img src="youtube.png" alt="YouTube">
+      </div>
+      <div class="social-btn-row" onclick="window.open('https://https://t.me/im_ur_dad143', '_blank')">
+        <span>CLICK HERE</span>
+        <img src="telegram.png" alt="Telegram">
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const fileInput = document.getElementById('fileInput');
+    const fileNameDiv = document.getElementById('fileName');
+    const patternMsg = document.getElementById('patternMsg');
+    const downloadBtn = document.getElementById('downloadBtn');
+
+    let modifiedBuffer = null;
+    let originalFileName = '';
+
+    fileInput.addEventListener('change', function () {
+      const file = this.files[0];
+      if (file && file.name.endsWith('.bytes')) {
+        originalFileName = file.name;
+        fileNameDiv.textContent = "Selected File: " + file.name;
+        const reader = new FileReader();
+
+        reader.onload = function (e) {
+          const buffer = new Uint8Array(e.target.result);
+          let index = -1;
+
+          for (let i = buffer.length - 7; i >= 0; i--) {
+            if (buffer[i] === 0x38 && buffer[i + 6] === 0x42) {
+              index = i;
+              break;
+            }
+          }
+
+          if (index !== -1) {
+            const newBuffer = new Uint8Array(buffer.length - 4);
+            newBuffer.set(buffer.slice(0, index), 0);
+            newBuffer.set([0x38, 0x00, 0x42], index);
+            newBuffer.set(buffer.slice(index + 7), index + 3);
+
+            modifiedBuffer = newBuffer;
+            patternMsg.textContent = '';
+            downloadBtn.disabled = false;
+          } else {
+            patternMsg.textContent = 'Pattern not found';
+            downloadBtn.disabled = true;
+            modifiedBuffer = null;
+          }
+        };
+
+        reader.readAsArrayBuffer(file);
+      } else {
+        fileNameDiv.textContent = "Invalid file type. Please select a .bytes file.";
+        patternMsg.textContent = '';
+        this.value = '';
+        downloadBtn.disabled = true;
+      }
+    });
+
+    downloadBtn.addEventListener('click', function () {
+      if (modifiedBuffer && originalFileName) {
+        const blob = new Blob([modifiedBuffer], { type: "application/octet-stream" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = `modified_By_Gamav_${originalFileName}`;
+        a.click();
+        URL.revokeObjectURL(a.href);
+      }
+    });
+  </script>
 </body>
 </html>
