@@ -3,197 +3,269 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Giphy Sticker Studio</title>
+<title>Giphy Professional Studio</title>
 
 <script src="https://unpkg.com/gif-frames/dist/gif-frames.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
 
 <style>
-body{background:#0a0a0a;color:white;font-family:sans-serif;text-align:center}
-canvas{max-width:100%}
+:root { --primary:#00ff62; --bg:#0a0a0a; --card:#151515; }
+
+body{
+font-family:Inter,sans-serif;
+background:var(--bg);
+color:white;
+margin:0;
+padding:15px;
+display:flex;
+flex-direction:column;
+align-items:center;
+}
+
+.studio-card{
+background:var(--card);
+border-radius:24px;
+width:100%;
+max-width:500px;
+padding:20px;
+box-shadow:0 15px 50px rgba(0,0,0,0.5);
+border:1px solid #222;
+}
+
+.screen{
+width:100%;
+aspect-ratio:1/1;
+background:#fff;
+border-radius:16px;
+display:flex;
+align-items:center;
+justify-content:center;
+position:relative;
+overflow:hidden;
+border:1px solid #333;
+margin-bottom:15px;
+}
+
+canvas{max-width:100%;max-height:100%}
+
+.btn{
+width:100%;
+padding:16px;
+border:none;
+border-radius:14px;
+font-weight:bold;
+cursor:pointer;
+font-size:16px;
+}
+
+.btn-exp{
+background:var(--primary);
+color:#000;
+}
+
+#loader{
+position:fixed;
+inset:0;
+background:rgba(0,0,0,0.95);
+display:none;
+flex-direction:column;
+align-items:center;
+justify-content:center;
+z-index:99;
+}
 </style>
 </head>
 
 <body>
 
-<input type="file" id="up" accept="image/gif">
-<br><br>
+<div id="loader">
+<h1 id="prog" style="color:var(--primary)">0%</h1>
+</div>
 
+<div class="studio-card">
+
+<div class="screen">
 <canvas id="c"></canvas>
+<input type="file" id="up" accept="image/gif"
+style="position:absolute; inset:0; opacity:0; cursor:pointer;">
+</div>
 
-<br><br>
-
-Stroke Width
+<label>Stroke Width</label>
 <input type="range" id="wS" min="0" max="30" value="8">
 
-<br><br>
+<button class="btn btn-exp" id="dl">Generate Transparent GIF</button>
 
-<button id="dl">Export Transparent GIF</button>
+</div>
 
 <script>
 
-const up=document.getElementById("up");
-const c=document.getElementById("c");
-const ctx=c.getContext("2d");
+const up=document.getElementById('up')
+const c=document.getElementById('c')
+const ctx=c.getContext('2d')
 
-const wS=document.getElementById("wS");
-const dl=document.getElementById("dl");
+const wS=document.getElementById('wS')
+const dl=document.getElementById('dl')
 
-let frames=[];
-let cur=0;
-let loop=null;
+const loader=document.getElementById('loader')
+const prog=document.getElementById('prog')
 
-c.width=500;
-c.height=500;
+let frames=[]
+let cur=0
+let tid=null
 
-up.onchange=async e=>{
+c.width=500
+c.height=500
 
-const file=e.target.files[0];
-if(!file) return;
+up.onchange=async(e)=>{
+
+const file=e.target.files[0]
+if(!file)return
+
+loader.style.display='flex'
 
 const res=await gifFrames({
 url:URL.createObjectURL(file),
-frames:"all",
-outputType:"canvas"
-});
+frames:'all',
+outputType:'canvas'
+})
 
-frames=res.map(f=>f.getImage());
+frames=res.map(f=>f.getImage())
 
-startLoop();
+startLoop()
 
-};
+loader.style.display='none'
+
+}
 
 function startLoop(){
 
-if(loop) clearInterval(loop);
+if(tid)clearInterval(tid)
 
-loop=setInterval(()=>{
-
-draw();
-
-cur=(cur+1)%frames.length;
-
-},100);
+tid=setInterval(()=>{
+draw()
+cur=(cur+1)%frames.length
+},100)
 
 }
 
 function process(img,isExport=false){
 
-const size=c.width;
+const size=c.width
 
-const tc=document.createElement("canvas");
-tc.width=size;
-tc.height=size;
+const tc=document.createElement('canvas')
+tc.width=size
+tc.height=size
 
-const tx=tc.getContext("2d");
+const tx=tc.getContext('2d')
 
-tx.clearRect(0,0,size,size);
+tx.clearRect(0,0,size,size)
 
-tx.drawImage(img,0,0,size,size);
+tx.drawImage(img,0,0,size,size)
 
-const stroke=parseInt(wS.value);
+const stroke=parseInt(wS.value)
 
 if(stroke>0){
 
-const sc=document.createElement("canvas");
-sc.width=size;
-sc.height=size;
+const sc=document.createElement('canvas')
+sc.width=size
+sc.height=size
 
-const sx=sc.getContext("2d");
+const sx=sc.getContext('2d')
 
-sx.fillStyle="#000";
+sx.fillStyle="#000"
 
 for(let x=-stroke;x<=stroke;x++){
 for(let y=-stroke;y<=stroke;y++){
 
 if(x*x+y*y<=stroke*stroke){
 
-sx.drawImage(tc,x,y);
+sx.drawImage(tc,x,y)
 
 }
 
 }
 }
 
-sx.globalCompositeOperation="source-in";
+sx.globalCompositeOperation="source-in"
+sx.fillRect(0,0,size,size)
 
-sx.fillRect(0,0,size,size);
+sx.globalCompositeOperation="source-over"
+sx.drawImage(tc,0,0)
 
-sx.globalCompositeOperation="source-over";
-
-sx.drawImage(tc,0,0);
-
-return sc;
-
+return sc
 }
 
-return tc;
+return tc
 
 }
 
 function draw(){
 
-if(!frames[cur]) return;
+if(!frames[cur])return
 
-ctx.clearRect(0,0,c.width,c.height);
+ctx.clearRect(0,0,c.width,c.height)
 
-const frame=process(frames[cur],false);
-
-ctx.drawImage(frame,0,0);
+ctx.drawImage(process(frames[cur],false),0,0)
 
 }
 
 dl.onclick=async()=>{
 
-if(!frames.length) return;
+if(!frames.length)return
 
-const worker=await fetch("https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.worker.js")
-.then(r=>r.blob());
+loader.style.display='flex'
+
+const worker=await fetch(
+"https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.worker.js"
+).then(r=>r.blob())
 
 const gif=new GIF({
-
 workers:4,
 quality:5,
 workerScript:URL.createObjectURL(worker),
 transparent:"rgba(0,0,0,0)",
 width:c.width,
 height:c.height
+})
 
-});
+frames.forEach((f)=>{
 
-frames.forEach(f=>{
+const frameCanvas=process(f,true)
 
-const frameCanvas=process(f,true);
+const tempCanvas=document.createElement('canvas')
+tempCanvas.width=frameCanvas.width
+tempCanvas.height=frameCanvas.height
 
-const temp=document.createElement("canvas");
-temp.width=frameCanvas.width;
-temp.height=frameCanvas.height;
+const tempCtx=tempCanvas.getContext('2d')
 
-const tctx=temp.getContext("2d");
+tempCtx.drawImage(frameCanvas,0,0)
 
-tctx.drawImage(frameCanvas,0,0);
-
-gif.addFrame(tctx,{
+gif.addFrame(tempCtx,{
 delay:100,
-copy:true
-});
+copy:true,
+disposal:2
+})
 
-});
+})
 
-gif.on("finished",blob=>{
+gif.on('progress',p=>{
+prog.innerText=Math.round(p*100)+"%"
+})
 
-const a=document.createElement("a");
+gif.on('finished',b=>{
 
-a.href=URL.createObjectURL(blob);
-a.download="giphy_sticker.gif";
+const a=document.createElement('a')
+a.href=URL.createObjectURL(b)
+a.download="giphy_sticker.gif"
+a.click()
 
-a.click();
+loader.style.display='none'
 
-});
+})
 
-gif.render();
+gif.render()
 
-};
+}
 
 </script>
 
