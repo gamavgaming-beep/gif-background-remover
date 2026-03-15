@@ -1,220 +1,206 @@
 <!DOCTYPE html>
-<html lang="ta">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pro GIF Sticker Maker</title>
-    
+    <title>Giphy Professional Studio</title>
     <script src="https://unpkg.com/gif-frames/dist/gif-frames.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
-    
     <style>
-        :root { --blue: #4a90e2; --bg: #f8f9fa; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 10px; }
-        
-        .card { background: white; border-radius: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.08); overflow: hidden; margin-bottom: 15px; border: 1px solid #eee; }
-        h2 { font-size: 14px; background: #fff; color: var(--blue); padding: 15px; margin: 0; text-align: center; border-bottom: 1px solid #f0f0f0; text-transform: uppercase; }
-        
-        .preview-area { 
-            width: 100%; height: 320px; position: relative; 
-            background-color: #e5e5e5;
-            background-image: linear-gradient(45deg, #d1d1d1 25%, transparent 25%), linear-gradient(-45deg, #d1d1d1 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #d1d1d1 75%), linear-gradient(-45deg, transparent 75%, #d1d1d1 75%);
-            background-size: 20px 20px;
-            display: flex; align-items: center; justify-content: center; overflow: hidden;
-        }
-        canvas { max-width: 98%; max-height: 98%; }
-
-        .btn-row { background: var(--blue); display: flex; padding: 12px; gap: 8px; }
-        button { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 12px; font-size: 13px; border-radius: 8px; flex: 1; font-weight: 600; cursor: pointer; }
-
-        .settings { padding: 20px; }
-        .control-item { margin-bottom: 20px; }
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        
-        label { display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; color: #555; margin-bottom: 8px; }
-        label span { color: var(--blue); }
-        
-        input[type="range"] { width: 100%; height: 6px; background: #ddd; border-radius: 5px; appearance: none; outline: none; }
-        input[type="range"]::-webkit-slider-thumb { appearance: none; width: 20px; height: 20px; background: var(--blue); border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        
-        input[type="color"] { width: 100%; height: 45px; border: 2px solid #eee; border-radius: 10px; cursor: pointer; background: none; }
-
-        #loader { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; color: white; }
-        .spinner { width: 40px; height: 40px; border: 4px solid #333; border-top: 4px solid #fff; border-radius: 50%; animation: spin 1s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        :root { --primary: #00ff62; --bg: #0a0a0a; --card: #151515; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: white; margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; }
+        .studio-card { background: var(--card); border-radius: 24px; width: 100%; max-width: 500px; padding: 20px; box-shadow: 0 15px 50px rgba(0,0,0,0.5); border: 1px solid #222; }
+        .screen { width: 100%; aspect-ratio: 1/1; background: #000; border-radius: 16px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; border: 1px solid #333; margin-bottom: 15px; }
+        canvas { max-width: 100%; max-height: 100%; image-rendering: auto; }
+        .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .meta-box { background: #1e1e1e; padding: 10px; border-radius: 12px; border: 1px solid #333; }
+        .meta-label { font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+        .meta-val { font-size: 14px; font-weight: bold; color: var(--primary); display: block; margin-top: 4px; }
+        .control-section { background: #1a1a1a; padding: 15px; border-radius: 16px; margin-bottom: 15px; }
+        label { font-size: 12px; font-weight: 600; color: #bbb; display: flex; justify-content: space-between; margin-bottom: 10px; }
+        input[type="range"] { width: 100%; accent-color: var(--primary); cursor: pointer; }
+        .color-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+        input[type="color"] { width: 100%; height: 35px; border: none; border-radius: 8px; background: #222; cursor: pointer; }
+        .btn { width: 100%; padding: 16px; border: none; border-radius: 14px; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.2s; }
+        .btn-up { background: #333; color: white; margin-bottom: 10px; border: 1px solid #444; }
+        .btn-exp { background: var(--primary); color: #000; }
+        #loader { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 99; }
     </style>
 </head>
 <body>
 
 <div id="loader">
-    <div class="spinner"></div>
-    <div id="prog" style="margin-top:15px; font-size:20px;">Loading Frames...</div>
+    <h1 id="prog" style="color:var(--primary)">0%</h1>
+    <p id="lMsg">Analyzing & Processing...</p>
 </div>
 
-<div class="card">
-    <h2>Ultra-Accurate Preview</h2>
-    <div class="preview-area">
-        <canvas id="c1"></canvas>
+<div class="studio-card">
+    <div class="screen">
+        <canvas id="c"></canvas>
         <input type="file" id="up" accept="image/gif" style="position:absolute; inset:0; opacity:0; cursor:pointer;">
-    </div>
-    <div class="btn-row">
-        <button onclick="document.getElementById('up').click()">Upload GIF</button>
-        <button id="dl">Download Result</button>
-    </div>
-</div>
-
-<div class="card settings">
-    <div class="grid-2">
-        <div class="control-item">
-            <label>BG Color</label>
-            <input type="color" id="bgC" value="#00ff00">
-        </div>
-        <div class="control-item">
-            <label>Stroke Color</label>
-            <input type="color" id="stC" value="#ffffff">
-        </div>
+        <div id="empty">Click to Import GIF</div>
     </div>
 
-    <div class="control-item">
-        <label>Accuracy <span id="tV">45%</span></label>
+    <div class="meta-grid">
+        <div class="meta-box"><span class="meta-label">Original Size</span><span class="meta-val" id="oS">0 x 0</span></div>
+        <div class="meta-box"><span class="meta-label">Original FPS</span><span class="meta-val" id="oF">0 FPS</span></div>
+        <div class="meta-box"><span class="meta-label">Target Res</span><span class="meta-val" id="tRes">540 x 540</span></div>
+        <div class="meta-box"><span class="meta-label">Export FPS</span><span class="meta-val" id="tF">30 FPS</span></div>
+    </div>
+
+    <button class="btn btn-up" onclick="document.getElementById('up').click()">LOAD ASSET</button>
+
+    <div class="control-section">
+        <label>Output Resolution <span id="resV">540px</span></label>
+        <input type="range" id="resS" min="200" max="800" step="10" value="540">
+        
+        <label style="margin-top:15px;">Export Frame Rate (FPS) <span id="fpsV">30</span></label>
+        <input type="range" id="fpsS" min="5" max="60" step="1" value="30">
+    </div>
+
+    <div class="control-section">
+        <label>Object Fit (Padding) <span id="scV">85%</span></label>
+        <input type="range" id="scS" min="20" max="100" value="85">
+
+        <div class="color-group">
+            <div><label>Remove BG</label><input type="color" id="bgC" value="#ffffff"></div>
+            <div><label>Stroke</label><input type="color" id="stC" value="#000000"></div>
+        </div>
+        
+        <label style="margin-top:15px;">Stroke Width <span id="wV">8px</span></label>
+        <input type="range" id="wS" min="0" max="30" value="8">
+        
+        <label>BG Tolerance <span id="tV">45%</span></label>
         <input type="range" id="tS" min="0" max="100" value="45">
     </div>
 
-    <div class="control-item">
-        <label>Feather <span id="fV">2</span></label>
-        <input type="range" id="fS" min="0" max="30" value="2">
-    </div>
-
-    <div class="control-item">
-        <label>Edge Shrink <span id="eV">0</span>px</label>
-        <input type="range" id="eS" min="0" max="5" value="0">
-    </div>
-
-    <div class="control-item">
-        <label>Stroke Width <span id="wV">0</span>px</label>
-        <input type="range" id="wS" min="0" max="20" value="0">
-    </div>
+    <button class="btn btn-exp" id="dl">GENERATE GIPHY STICKER</button>
 </div>
 
 <script>
-    const up = document.getElementById('up'), c1 = document.getElementById('c1'), ctx1 = c1.getContext('2d');
-    const bgC = document.getElementById('bgC'), stC = document.getElementById('stC'), tS = document.getElementById('tS');
-    const fS = document.getElementById('fS'), eS = document.getElementById('eS'), wS = document.getElementById('wS');
+    const up = document.getElementById('up'), c = document.getElementById('c'), ctx = c.getContext('2d');
+    const resS = document.getElementById('resS'), fpsS = document.getElementById('fpsS'), scS = document.getElementById('scS'), tS = document.getElementById('tS'), wS = document.getElementById('wS'), bgC = document.getElementById('bgC'), stC = document.getElementById('stC');
     const dl = document.getElementById('dl'), loader = document.getElementById('loader'), prog = document.getElementById('prog');
+    
+    let frames = [], delays = [], cur = 0, tid = null, ow = 0, oh = 0;
 
-    let frames = [], delays = [], cur = 0, tid = null;
-
-    // --- UPLOAD & PREVIEW FIX ---
     up.onchange = async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-
+        const file = e.target.files[0]; if(!file) return;
+        document.getElementById('empty').style.display = 'none';
         loader.style.display = 'flex';
-        prog.innerText = "Extracting GIF...";
-
+        
         try {
-            const url = URL.createObjectURL(file);
-            // gifFrames லைப்ரரி மூலம் ஃபிரேம்களைப் பிரித்தல்
-            const res = await gifFrames({ url: url, frames: 'all', outputType: 'canvas' });
-            
+            const res = await gifFrames({ url: URL.createObjectURL(file), frames: 'all', outputType: 'canvas' });
             frames = res.map(f => f.getImage());
-            delays = res.map(f => f.frameInfo.delay * 10);
             
-            c1.width = frames[0].width;
-            c1.height = frames[0].height;
-
-            if (tid) clearInterval(tid);
-            tid = setInterval(() => {
-                draw(cur);
-                cur = (cur + 1) % frames.length;
-            }, 100);
-
-            loader.style.display = 'none';
-        } catch (err) {
-            alert("Error loading GIF. Please try another file.");
-            loader.style.display = 'none';
-        }
+            // Calculate Original Metadata
+            ow = frames[0].width; oh = frames[0].height;
+            const avgDelay = res.reduce((acc, f) => acc + (f.frameInfo.delay || 10), 0) / res.length;
+            const originalFPS = Math.round(100 / avgDelay);
+            
+            document.getElementById('oS').innerText = `${ow}x${oh}`;
+            document.getElementById('oF').innerText = `${originalFPS} FPS`;
+            
+            updateCanvas();
+            startLoop();
+        } catch (err) { alert("GIF load error."); }
+        loader.style.display = 'none';
     };
 
-    function process(img) {
-        const tempC = document.createElement('canvas');
-        tempC.width = c1.width; tempC.height = c1.height;
-        const tx = tempC.getContext('2d');
-        tx.drawImage(img, 0, 0);
+    function updateCanvas() {
+        const size = parseInt(resS.value);
+        c.width = size; c.height = size;
+        document.getElementById('tRes').innerText = `${size}x${size}`;
+        document.getElementById('resV').innerText = `${size}px`;
+        document.getElementById('tF').innerText = `${fpsS.value} FPS`;
+        document.getElementById('fpsV').innerText = fpsS.value;
+    }
 
-        const id = tx.getImageData(0,0,tempC.width,tempC.height), d = id.data;
-        const target = hex(bgC.value), tol = tS.value * 2.55, feather = fS.value * 2;
-        const shrink = parseInt(eS.value);
+    function startLoop() {
+        if(tid) clearInterval(tid);
+        const interval = 1000 / parseInt(fpsS.value);
+        tid = setInterval(() => { draw(); cur = (cur+1)%frames.length; }, interval);
+    }
 
-        // 1. BG Remove
+    function process(img, isExport = false) {
+        const size = c.width;
+        const tc = document.createElement('canvas');
+        tc.width = size; tc.height = size;
+        const tx = tc.getContext('2d');
+        
+        const scale = parseInt(scS.value) / 100;
+        const aspect = ow / oh;
+        let dw, dh;
+        if (aspect > 1) { dw = size * scale; dh = dw / aspect; }
+        else { dh = size * scale; dw = dh * aspect; }
+        
+        tx.clearRect(0, 0, size, size);
+        tx.drawImage(img, (size-dw)/2, (size-dh)/2, dw, dh);
+
+        const id = tx.getImageData(0,0,size,size), d = id.data;
+        const target = {r:parseInt(bgC.value.slice(1,3),16), g:parseInt(bgC.value.slice(3,5),16), b:parseInt(bgC.value.slice(5,7),16)};
+        const tol = tS.value * 2.55;
+
         for (let i = 0; i < d.length; i += 4) {
             const diff = Math.sqrt((d[i]-target.r)**2 + (d[i+1]-target.g)**2 + (d[i+2]-target.b)**2);
             if (diff < tol) d[i+3] = 0;
-            else if (diff < tol + feather) d[i+3] = ((diff - tol) / feather) * 255;
+            else if (isExport) d[i+3] = 255;
         }
         tx.putImageData(id, 0, 0);
 
-        // 2. Shrink
-        if (shrink > 0) {
-            tx.globalCompositeOperation = 'destination-out';
-            for (let x = -shrink; x <= shrink; x++) {
-                for (let y = -shrink; y <= shrink; y++) {
-                    if (x !== 0 || y !== 0) tx.drawImage(tempC, x, y);
-                }
-            }
-            tx.globalCompositeOperation = 'source-over';
-        }
-
-        // 3. Pro Stroke (Edge Only)
         const stroke = parseInt(wS.value);
         if (stroke > 0) {
-            const sCanvas = document.createElement('canvas');
-            sCanvas.width = tempC.width; sCanvas.height = tempC.height;
-            const sx = sCanvas.getContext('2d');
-            for (let x = -stroke; x <= stroke; x++) {
-                for (let y = -stroke; y <= stroke; y++) {
-                    if (x*x + y*y <= stroke*stroke) sx.drawImage(tempC, x, y);
+            const sc = document.createElement('canvas');
+            sc.width = size; sc.height = size;
+            const sx = sc.getContext('2d');
+            sx.fillStyle = stC.value;
+            for(let x = -stroke; x <= stroke; x++) {
+                for(let y = -stroke; y <= stroke; y++) {
+                    if(x*x + y*y <= stroke*stroke) sx.drawImage(tc, x, y);
                 }
             }
             sx.globalCompositeOperation = 'source-in';
-            sx.fillStyle = stC.value;
-            sx.fillRect(0,0,sCanvas.width, sCanvas.height);
+            sx.fillStyle = stC.value; sx.fillRect(0,0,size,size);
             sx.globalCompositeOperation = 'source-over';
-            sx.drawImage(tempC, 0, 0);
-            return sCanvas;
+            sx.drawImage(tc, 0, 0);
+            return sc;
         }
-        return tempC;
+        return tc;
     }
 
-    function draw(i) {
-        if (!frames[i]) return;
-        const p = process(frames[i]);
-        ctx1.clearRect(0,0,c1.width, c1.height);
-        ctx1.drawImage(p, 0, 0);
+    function draw() {
+        if(!frames[cur]) return;
+        ctx.clearRect(0, 0, c.width, c.height);
+        ctx.drawImage(process(frames[cur], false), 0, 0);
     }
 
     dl.onclick = async () => {
         if(!frames.length) return;
         loader.style.display = 'flex';
         const b = await fetch('https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.worker.js').then(r => r.blob());
-        const gif = new GIF({ workers: 2, quality: 5, workerScript: URL.createObjectURL(b), transparent: 'rgba(0,0,0,0)', width: c1.width, height: c1.height });
-        frames.forEach((f, i) => gif.addFrame(process(f), {delay: delays[i], copy: true}));
-        gif.on('progress', p => prog.innerText = "Encoding: " + Math.round(p * 100) + "%");
+        const fps = parseInt(fpsS.value);
+        const gif = new GIF({ 
+            workers: 4, quality: 5, workerScript: URL.createObjectURL(b), 
+            transparent: 'rgba(0,0,0,0)', width: c.width, height: c.height 
+        });
+
+        frames.forEach((f) => {
+            gif.addFrame(process(f, true), {delay: 1000/fps, copy: true, disposal: 2});
+        });
+
+        gif.on('progress', p => prog.innerText = Math.round(p * 100) + "%");
         gif.on('finished', b => {
-            const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = "sticker.gif"; a.click();
+            const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `giphy_${c.width}px_${fps}fps.gif`; a.click();
             loader.style.display = 'none';
         });
         gif.render();
     };
 
-    function hex(h) { return {r:parseInt(h.slice(1,3),16), g:parseInt(h.slice(3,5),16), b:parseInt(h.slice(5,7),16)}; }
-    
-    [tS, fS, eS, wS, bgC, stC].forEach(el => {
-        el.oninput = () => {
-            const display = document.getElementById(el.id.replace('S', 'V'));
-            if(display) display.innerText = el.value + (el.id === 'tS' ? '%' : (el.id === 'wS' || el.id === 'eS' ? 'px' : ''));
-            if(frames.length) draw(cur);
-        }
+    [resS, fpsS, scS, tS, wS, bgC, stC].forEach(el => el.oninput = () => {
+        updateCanvas();
+        if(el.id === 'fpsS') startLoop();
+        document.getElementById(el.id.replace('S','V')).innerText = el.value + (el.id==='wS'?'px':el.id==='scS'?'%':el.id==='tS'?'%':'');
+        if(frames.length) draw();
     });
 </script>
 </body>
