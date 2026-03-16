@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Giphy Pro Studio - Full Features</title>
+    <title>Giphy Pro - Ultimate Fix</title>
     <script src="https://unpkg.com/gif-frames/dist/gif-frames.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
     <style>
@@ -18,7 +18,7 @@
         }
         
         #up { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 10; }
-        #empty { color: #000; font-weight: bold; text-shadow: 0 0 5px rgba(255,255,255,0.8); text-align: center; z-index: 1; pointer-events: none; }
+        #empty { color: #000; font-weight: bold; text-align: center; z-index: 1; pointer-events: none; }
         canvas { position: absolute; max-width: 100%; max-height: 100%; z-index: 5; pointer-events: none; }
         
         .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
@@ -43,7 +43,7 @@
 
 <div id="loader">
     <h1 id="prog" style="color:var(--primary)">0%</h1>
-    <p id="lMsg" style="color:white">Processing with High Accuracy...</p>
+    <p id="lMsg" style="color:white">Processing Glow & Effects...</p>
 </div>
 
 <div class="studio-card">
@@ -69,10 +69,10 @@
     </div>
 
     <div class="control-section">
-        <label>Object Fit (Padding) <span id="scV">85%</span></label>
-        <input type="range" id="scS" min="20" max="100" value="85">
+        <label>Object Fit (Padding) <span id="scV">80%</span></label>
+        <input type="range" id="scS" min="20" max="100" value="80">
 
-        <label>Alpha Accuracy (BG Removal) <span id="tV">45%</span></label>
+        <label>Alpha Accuracy <span id="tV">45%</span></label>
         <input type="range" id="tS" min="0" max="100" value="45">
 
         <div class="color-group">
@@ -83,17 +83,17 @@
     </div>
 
     <div class="control-section">
-        <label>Neon Glow Blur <span id="glV">0px</span></label>
-        <input type="range" id="glS" min="0" max="50" value="0">
+        <label>Neon Glow Blur <span id="glV">15px</span></label>
+        <input type="range" id="glS" min="0" max="50" value="15">
         
-        <label>Shadow Intensity <span id="shV">0%</span></label>
-        <input type="range" id="shS" min="0" max="100" value="0">
+        <label>Shadow Intensity <span id="shV">20%</span></label>
+        <input type="range" id="shS" min="0" max="100" value="20">
         
         <label>Stroke Width <span id="wV">8px</span></label>
         <input type="range" id="wS" min="0" max="30" value="8">
     </div>
 
-    <button class="btn btn-exp" id="dl">GENERATE PRO STICKER</button>
+    <button class="btn btn-exp" id="dl">GENERATE GLOW STICKER</button>
 </div>
 
 <script>
@@ -157,6 +157,7 @@
         const out = document.createElement('canvas'); out.width = size; out.height = size;
         const ox = out.getContext('2d');
 
+        // Render Effects
         if(glS.value > 0) { ox.shadowColor = glC.value; ox.shadowBlur = parseInt(glS.value); }
         if(shS.value > 0) { ox.shadowColor = `rgba(0,0,0,${shS.value/100})`; ox.shadowOffsetY = 5; ox.shadowBlur = 10; }
 
@@ -194,7 +195,7 @@
         frames.forEach(f => gif.addFrame(process(f, true), {delay: 1000/fps, copy: true, disposal: 2}));
         gif.on('progress', p => prog.innerText = Math.round(p * 100) + "%");
         gif.on('finished', b => {
-            const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `pro_sticker.gif`; a.click();
+            const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `glow_sticker.gif`; a.click();
             loader.style.display = 'none';
         });
         gif.render();
@@ -209,3 +210,4 @@
 </script>
 </body>
 </html>
+
