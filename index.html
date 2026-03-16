@@ -3,220 +3,249 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ultimate Giphy Sticker Studio - All Features Merged</title>
+    <title>Pro Giphy Sticker Studio - All-In-One</title>
     <script src="https://unpkg.com/gif-frames/dist/gif-frames.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
     <style>
-        :root { --primary: #00ff62; --bg: #0a0a0a; --card: #151515; --accent: #ff00ff; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: white; margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; }
-        .studio-card { background: var(--card); border-radius: 20px; width: 100%; max-width: 500px; padding: 20px; border: 1px solid #222; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        :root { --primary: #00ff62; --bg: #0a0a0a; --card: #151515; --text: #eeeeee; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; }
         
-        /* Preview Screen */
-        .screen { 
+        .container { width: 100%; max-width: 550px; background: var(--card); border-radius: 24px; padding: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); border: 1px solid #222; box-sizing: border-box; }
+        
+        /* Original UI Screen */
+        .preview-area { 
             width: 100%; aspect-ratio: 1/1; background-color: #fff;
-            background-image: linear-gradient(45deg, #eee 25%, transparent 25%), linear-gradient(-45deg, #eee 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #eee 75%), linear-gradient(-45deg, transparent 75%, #eee 75%);
-            background-size: 20px 20px; border-radius: 15px; position: relative; overflow: hidden; border: 2px solid #333; margin-bottom: 15px; display: grid; place-items: center; 
+            background-image: linear-gradient(45deg, #ddd 25%, transparent 25%), linear-gradient(-45deg, #ddd 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ddd 75%), linear-gradient(-45deg, transparent 75%, #ddd 75%);
+            background-size: 20px 20px; border-radius: 18px; position: relative; overflow: hidden; border: 3px solid #333; margin-bottom: 20px; display: grid; place-items: center; 
         }
-        #up { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 10; }
-        canvas { position: absolute; max-width: 100%; max-height: 100%; z-index: 5; }
+        #fileInput { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 10; }
+        canvas { position: absolute; max-width: 100%; max-height: 100%; z-index: 5; image-rendering: pixelated; }
+        
+        .status-bar { display: flex; justify-content: space-between; background: #222; padding: 10px 15px; border-radius: 12px; margin-bottom: 15px; font-size: 12px; font-weight: bold; color: var(--primary); }
 
-        /* Controls Area */
-        .control-section { background: #1a1a1a; padding: 15px; border-radius: 12px; margin-bottom: 12px; border: 1px solid #282828; }
-        h3 { font-size: 14px; margin: 0 0 10px 0; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; }
+        /* Control Panels */
+        .panel { background: #1a1a1a; padding: 15px; border-radius: 16px; margin-bottom: 12px; border: 1px solid #282828; }
+        .panel h3 { font-size: 13px; margin: 0 0 12px 0; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; display: flex; justify-content: space-between; }
         
-        label { font-size: 11px; color: #bbb; display: flex; justify-content: space-between; margin-bottom: 5px; font-weight: bold; }
-        input[type="range"] { width: 100%; accent-color: var(--primary); cursor: pointer; height: 6px; border-radius: 5px; background: #333; appearance: none; }
+        .control-group { margin-bottom: 12px; }
+        label { font-size: 11px; color: #aaa; display: flex; justify-content: space-between; margin-bottom: 6px; }
+        input[type="range"] { width: 100%; accent-color: var(--primary); cursor: pointer; height: 5px; }
+
+        .flex-row { display: flex; gap: 10px; align-items: center; }
+        .mode-toggle { background: #222; padding: 10px; border-radius: 10px; display: flex; align-items: center; gap: 10px; flex: 1; border: 1px solid #333; }
         
-        /* Toggle & Colors */
-        .row { display: flex; align-items: center; gap: 15px; margin-top: 10px; }
-        .mode-box { display: flex; align-items: center; gap: 10px; background: #222; padding: 8px 12px; border-radius: 8px; flex: 1; }
-        
-        .switch { position: relative; display: inline-block; width: 34px; height: 18px; }
+        /* Switch UI */
+        .switch { position: relative; width: 38px; height: 20px; }
         .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; inset: 0; background-color: #444; transition: .4s; border-radius: 18px; }
-        .slider:before { position: absolute; content: ""; height: 12px; width: 12px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: var(--primary); }
-        input:checked + .slider:before { transform: translateX(16px); }
+        .slider { position: absolute; cursor: pointer; inset: 0; background: #444; transition: .4s; border-radius: 20px; }
+        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background: var(--primary); }
+        input:checked + .slider:before { transform: translateX(18px); }
 
-        .color-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px; }
-        .color-item { text-align: center; }
-        input[type="color"] { width: 100%; height: 35px; border: none; border-radius: 6px; cursor: pointer; background: #333; padding: 2px; }
+        /* Color Section */
+        .color-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 10px; }
+        .color-item { display: flex; flex-direction: column; align-items: center; }
+        input[type="color"] { width: 100%; height: 35px; border: none; border-radius: 8px; cursor: pointer; background: #333; }
 
-        .btn-exp { width: 100%; padding: 18px; border: none; border-radius: 12px; font-weight: 800; cursor: pointer; font-size: 16px; background: var(--primary); color: #000; margin-top: 5px; transition: 0.3s; text-transform: uppercase; }
-        .btn-exp:active { transform: scale(0.98); }
+        /* Action Buttons */
+        .btn-main { width: 100%; padding: 18px; border: none; border-radius: 14px; font-weight: bold; font-size: 16px; cursor: pointer; background: var(--primary); color: #000; transition: 0.2s; text-transform: uppercase; }
+        .btn-main:active { transform: scale(0.97); }
 
-        #loader { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 100; }
-        #prog { font-size: 40px; margin: 0; }
+        #loader { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 100; }
     </style>
 </head>
 <body>
 
 <div id="loader">
-    <h2 id="prog" style="color:var(--primary)">0%</h2>
-    <p>Merging All Pro Features...</p>
+    <h1 id="progText" style="color:var(--primary); font-size: 48px;">0%</h1>
+    <p>Merging Original Logic & Effects...</p>
 </div>
 
-<div class="studio-card">
-    <div class="screen">
-        <input type="file" id="up" accept="image/gif">
-        <canvas id="c"></canvas>
-        <div id="hint" style="color:#888; text-align:center; padding:20px;">TAP TO LOAD SOURCE GIF</div>
+<div class="container">
+    <div class="preview-area">
+        <input type="file" id="fileInput" accept="image/gif">
+        <canvas id="mainCanvas"></canvas>
+        <div id="hintText" style="color:#000; font-weight: bold;">CLICK TO LOAD SOURCE GIF</div>
     </div>
 
-    <div class="control-section">
-        <h3>Layout & Removal</h3>
-        <label>Object Fit (Safe Area) <span id="scV">70%</span></label>
-        <input type="range" id="scS" min="30" max="85" value="70">
+    <div class="status-bar">
+        <span>SIZE: <span id="resInfo">0x0</span></span>
+        <span>FRAMES: <span id="frameCount">0</span></span>
+    </div>
+
+    <div class="panel">
+        <h3>Frame & Resize Control</h3>
+        <div class="control-group">
+            <label>Canvas Size (Original Resize) <span id="canvV">540px</span></label>
+            <input type="range" id="canvS" min="200" max="1000" value="540">
+        </div>
+        <div class="control-group">
+            <label>Frame Rate / Speed <span id="fpsV">50ms</span></label>
+            <input type="range" id="fpsS" min="10" max="200" value="50">
+        </div>
+    </div>
+
+    <div class="panel">
+        <h3>Object Properties</h3>
+        <label>Object Fit (Safe Area) <span id="fitV">70%</span></label>
+        <input type="range" id="fitS" min="20" max="95" value="70">
         
-        <label style="margin-top:10px;">Alpha Accuracy (Tolerance) <span id="tV">45%</span></label>
-        <input type="range" id="tS" min="0" max="100" value="45">
+        <label style="margin-top:10px;">Alpha Accuracy (BG Removal) <span id="accV">45%</span></label>
+        <input type="range" id="accS" min="0" max="100" value="45">
     </div>
 
-    <div class="control-section">
-        <h3>Sticker Effects</h3>
-        <div class="mode-box">
-            <span>Animated RGB Glow</span>
-            <label class="switch"><input type="checkbox" id="glowToggle"><span class="slider"></span></label>
+    <div class="panel">
+        <h3>Visual FX & Glow</h3>
+        <div class="flex-row">
+            <div class="mode-toggle">
+                <span>Animated RGB</span>
+                <label class="switch"><input type="checkbox" id="rgbMode"><span class="slider"></span></label>
+            </div>
+            <div class="mode-toggle">
+                <span>Shadow Depth</span>
+                <input type="range" id="shdS" min="0" max="100" value="40" style="width: 60px;">
+            </div>
         </div>
 
-        <div style="margin-top:10px;">
-            <label>Outline Width <span id="wV">10px</span></label>
-            <input type="range" id="wS" min="0" max="40" value="10">
-        </div>
-
-        <div style="margin-top:10px;">
-            <label>Shadow Depth <span id="shV">40%</span></label>
-            <input type="range" id="shS" min="0" max="100" value="40">
+        <div style="margin-top:12px;">
+            <label>Outline / Stroke Width <span id="strV">10px</span></label>
+            <input type="range" id="strS" min="0" max="40" value="10">
         </div>
 
         <div class="color-grid">
-            <div class="color-item"><label>Remove</label><input type="color" id="bgC" value="#ffffff"></div>
-            <div class="color-item"><label>Stroke</label><input type="color" id="stC" value="#ffffff"></div>
-            <div class="color-item"><label>Glow</label><input type="color" id="glC" value="#ff00ff"></div>
+            <div class="color-item"><label>BG Color</label><input type="color" id="bgColor" value="#ffffff"></div>
+            <div class="color-item"><label>Stroke</label><input type="color" id="strColor" value="#ffffff"></div>
+            <div class="color-item"><label>Glow</label><input type="color" id="glowColor" value="#ff00ff"></div>
         </div>
     </div>
 
-    <button class="btn-exp" id="dl">Generate Pro Giphy Sticker</button>
+    <button class="btn-main" id="exportBtn">Generate Giphy Sticker</button>
 </div>
 
 <script>
-    const up = document.getElementById('up'), c = document.getElementById('c'), ctx = c.getContext('2d');
-    const scS = document.getElementById('scS'), tS = document.getElementById('tS'), wS = document.getElementById('wS'), shS = document.getElementById('shS');
-    const bgC = document.getElementById('bgC'), stC = document.getElementById('stC'), glC = document.getElementById('glC'), glowToggle = document.getElementById('glowToggle');
-    const dl = document.getElementById('dl'), loader = document.getElementById('loader'), prog = document.getElementById('prog');
-    
-    let frames = [], cur = 0, tid = null, ow = 0, oh = 0;
+    const fileInput = document.getElementById('fileInput'), mainCanvas = document.getElementById('mainCanvas'), ctx = mainCanvas.getContext('2d');
+    const fitS = document.getElementById('fitS'), accS = document.getElementById('accS'), strS = document.getElementById('strS'), shdS = document.getElementById('shdS');
+    const canvS = document.getElementById('canvS'), fpsS = document.getElementById('fpsS');
+    const bgColor = document.getElementById('bgColor'), strColor = document.getElementById('strColor'), glowColor = document.getElementById('glowColor'), rgbMode = document.getElementById('rgbMode');
+    const exportBtn = document.getElementById('exportBtn'), loader = document.getElementById('loader'), progText = document.getElementById('progText');
 
-    up.onchange = async (e) => {
+    let frames = [], currentFrame = 0, loopId = null, origW = 0, origH = 0;
+
+    fileInput.onchange = async (e) => {
         const file = e.target.files[0]; if(!file) return;
-        document.getElementById('hint').style.display = 'none';
+        document.getElementById('hintText').style.display = 'none';
         loader.style.display = 'flex';
         const res = await gifFrames({ url: URL.createObjectURL(file), frames: 'all', outputType: 'canvas' });
         frames = res.map(f => f.getImage());
-        ow = frames[0].width; oh = frames[0].height;
-        c.width = 540; c.height = 540;
-        startLoop();
+        origW = frames[0].width; origH = frames[0].height;
+        document.getElementById('resInfo').innerText = `${origW}x${origH}`;
+        document.getElementById('frameCount').innerText = frames.length;
+        updateCanvasSize();
+        startPlayback();
         loader.style.display = 'none';
     };
 
-    function startLoop() {
-        if(tid) clearInterval(tid);
-        tid = setInterval(() => { draw(); cur = (cur+1)%frames.length; }, 1000/20);
+    function updateCanvasSize() {
+        mainCanvas.width = canvS.value;
+        mainCanvas.height = canvS.value;
     }
 
-    function process(img, frameIdx, isExport = false) {
-        const size = 540;
-        const mainC = document.createElement('canvas'); mainC.width = size; mainC.height = size;
-        const mx = mainC.getContext('2d');
+    function startPlayback() {
+        if(loopId) clearInterval(loopId);
+        loopId = setInterval(() => {
+            renderFrame();
+            currentFrame = (currentFrame + 1) % frames.length;
+        }, fpsS.value);
+    }
+
+    function processLogic(img, idx, isFinal = false) {
+        const size = parseInt(canvS.value);
+        const buffer = document.createElement('canvas'); buffer.width = size; buffer.height = size;
+        const bx = buffer.getContext('2d');
         
-        const scale = parseInt(scS.value) / 100;
-        const aspect = ow / oh;
+        const scale = fitS.value / 100;
+        const aspect = origW / origH;
         let dw = aspect > 1 ? size * scale : (size * scale) * aspect;
         let dh = aspect > 1 ? (size * scale) / aspect : size * scale;
         
-        // Center image
-        mx.drawImage(img, (size-dw)/2, (size-dh)/2, dw, dh);
+        bx.drawImage(img, (size-dw)/2, (size-dh)/2, dw, dh);
 
-        // Advanced Background Removal (Alpha Accuracy)
-        const id = mx.getImageData(0,0,size,size), d = id.data;
-        const target = {r:parseInt(bgC.value.slice(1,3),16), g:parseInt(bgC.value.slice(3,5),16), b:parseInt(bgC.value.slice(5,7),16)};
-        const tol = parseInt(tS.value) * 2.55;
-
+        // Alpha Logic (From Old Source)
+        const id = bx.getImageData(0,0,size,size), d = id.data;
+        const target = {r:parseInt(bgColor.value.slice(1,3),16), g:parseInt(bgColor.value.slice(3,5),16), b:parseInt(bgColor.value.slice(5,7),16)};
+        const tol = accS.value * 2.55;
         for (let i = 0; i < d.length; i += 4) {
-            const diff = Math.sqrt((d[i]-target.r)**2 + (d[i+1]-target.g)**2 + (d[i+2]-target.b)**2);
-            if (diff < tol) d[i+3] = 0;
-            else if (isExport) d[i+3] = 255; // Ensure solid pixels for sticker
+            if (Math.sqrt((d[i]-target.r)**2 + (d[i+1]-target.g)**2 + (d[i+2]-target.b)**2) < tol) d[i+3] = 0;
+            else if (isFinal) d[i+3] = 255;
         }
-        mx.putImageData(id, 0, 0);
+        bx.putImageData(id, 0, 0);
 
         const out = document.createElement('canvas'); out.width = size; out.height = size;
         const ox = out.getContext('2d');
 
-        // Color Mode Logic
-        let glowColor = glC.value;
-        if(glowToggle.checked) {
-            const hue = (frameIdx * 15) % 360;
-            glowColor = `hsl(${hue}, 100%, 50%)`;
+        let dynamicGlow = glowColor.value;
+        if(rgbMode.checked) dynamicGlow = `hsl(${(idx * 15) % 360}, 100%, 50%)`;
+
+        // Shadow Logic
+        if(shdS.value > 0) {
+            ox.shadowColor = `rgba(0,0,0,${shdS.value/100})`;
+            ox.shadowBlur = 15; ox.shadowOffsetY = size/60;
         }
 
-        // Apply Shadow Depth (From Old Source)
-        if(shS.value > 0) {
-            ox.shadowColor = `rgba(0,0,0,${shS.value/100})`;
-            ox.shadowBlur = 15; ox.shadowOffsetY = 8;
-        }
-
-        // Apply Glow
-        const finalGlow = document.createElement('canvas'); finalGlow.width = size; finalGlow.height = size;
-        const gx = finalGlow.getContext('2d');
-        gx.shadowColor = glowColor;
-        gx.shadowBlur = 20;
-
-        const stroke = parseInt(wS.value);
+        // Stroke & Glow Logic
+        const stroke = parseInt(strS.value);
         if (stroke > 0) {
             const sx = document.createElement('canvas').getContext('2d');
             sx.canvas.width = size; sx.canvas.height = size;
-            sx.fillStyle = glowToggle.checked ? glowColor : stC.value;
-            // Precise Stroke Generation
+            sx.fillStyle = rgbMode.checked ? dynamicGlow : strColor.value;
             for(let x = -stroke; x <= stroke; x+=2) {
                 for(let y = -stroke; y <= stroke; y+=2) {
-                    if(x*x + y*y <= stroke*stroke) sx.drawImage(mainC, x, y);
+                    if(x*x + y*y <= stroke*stroke) sx.drawImage(buffer, x, y);
                 }
             }
             sx.globalCompositeOperation = 'source-in'; sx.fillRect(0,0,size,size);
-            sx.globalCompositeOperation = 'source-over'; sx.drawImage(mainC, 0, 0);
-            gx.drawImage(sx.canvas, 0, 0);
+            sx.globalCompositeOperation = 'source-over'; sx.drawImage(buffer, 0, 0);
+            
+            ox.shadowColor = dynamicGlow;
+            ox.shadowBlur = 15;
+            ox.drawImage(sx.canvas, 0, 0);
         } else {
-            gx.drawImage(mainC, 0, 0);
+            ox.drawImage(buffer, 0, 0);
         }
-        
-        ox.drawImage(finalGlow, 0, 0);
         return out;
     }
 
-    function draw() {
+    function renderFrame() {
         if(!frames.length) return;
-        ctx.clearRect(0, 0, c.width, c.height);
-        ctx.drawImage(process(frames[cur], cur, false), 0, 0);
+        ctx.clearRect(0,0,mainCanvas.width,mainCanvas.height);
+        ctx.drawImage(processLogic(frames[currentFrame], currentFrame), 0, 0);
     }
 
-    dl.onclick = async () => {
+    exportBtn.onclick = async () => {
         if(!frames.length) return;
         loader.style.display = 'flex';
-        const b = await fetch('https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.worker.js').then(r => r.blob());
-        const gif = new GIF({ workers: 4, quality: 5, workerScript: URL.createObjectURL(b), transparent: 'rgba(0,0,0,0)', width: 540, height: 540 });
-        frames.forEach((f, i) => gif.addFrame(process(f, i, true), {delay: 50, copy: true, disposal: 2}));
-        gif.on('progress', p => prog.innerText = Math.round(p * 100) + "%");
+        const workerBlob = await fetch('https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.worker.js').then(r => r.blob());
+        const gif = new GIF({ workers: 4, quality: 5, workerScript: URL.createObjectURL(workerBlob), transparent: 'rgba(0,0,0,0)', width: mainCanvas.width, height: mainCanvas.height });
+        
+        frames.forEach((f, i) => gif.addFrame(processLogic(f, i, true), {delay: fpsS.value, copy: true, disposal: 2}));
+        
+        gif.on('progress', p => progText.innerText = Math.round(p * 100) + "%");
         gif.on('finished', b => {
-            const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `pro_giphy_sticker.gif`; a.click();
+            const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `pro_sticker_${mainCanvas.width}px.gif`; a.click();
             loader.style.display = 'none';
         });
         gif.render();
     };
 
-    [scS, tS, wS, shS, bgC, stC, glC].forEach(el => el.oninput = () => {
-        const d = document.getElementById(el.id.replace('S','V'));
-        if(d) d.innerText = el.value + (['wS','glS'].includes(el.id)?'px':'%');
+    // Sliders Listener
+    [fitS, accS, strS, shdS, canvS, fpsS].forEach(el => el.oninput = () => {
+        const val = document.getElementById(el.id.replace('S','V'));
+        if(val) val.innerText = el.value + (['strS'].includes(el.id)?'px':(el.id==='fpsS'?'ms':(el.id==='canvS'?'px':'%')));
+        if(el.id === 'canvS') updateCanvasSize();
+        if(el.id === 'fpsS') startPlayback();
+        renderFrame();
     });
+    [bgColor, strColor, glowColor, rgbMode].forEach(el => el.oninput = renderFrame);
 </script>
 </body>
 </html>
