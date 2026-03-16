@@ -3,120 +3,134 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pro Giphy Sticker Studio - Custom Resolution</title>
+    <title>Ultimate Sticker Studio - Pro Color Picker</title>
     <script src="https://unpkg.com/gif-frames/dist/gif-frames.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
     <style>
-        :root { --primary: #00e676; --bg: #e3f2fd; --card: #ffffff; --text: #333; --accent: #1976d2; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
-        .container { width: 100%; max-width: 500px; background: var(--card); border-radius: 20px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 1px solid #bbdefb; }
+        :root { --primary: #4F46E5; --bg: #f8fafc; --card: #ffffff; --text: #1e293b; --accent: #6366f1; }
+        body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+        
+        .container { width: 100%; max-width: 480px; background: var(--card); border-radius: 24px; padding: 24px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }
         
         .preview-area { 
             width: 100%; aspect-ratio: 1/1; background-color: #fff;
-            background-image: linear-gradient(45deg, #f0f0f0 25%, transparent 25%), linear-gradient(-45deg, #f0f0f0 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #f0f0f0 75%), linear-gradient(-45deg, transparent 75%, #f0f0f0 75%);
-            background-size: 20px 20px; border-radius: 15px; position: relative; overflow: hidden; border: 2px solid #90caf9; margin-bottom: 15px; display: grid; place-items: center; 
+            background-image: linear-gradient(45deg, #f1f5f9 25%, transparent 25%), linear-gradient(-45deg, #f1f5f9 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #f1f5f9 75%), linear-gradient(-45deg, transparent 75%, #f1f5f9 75%);
+            background-size: 20px 20px; border-radius: 20px; position: relative; overflow: hidden; border: 2px dashed #cbd5e1; margin-bottom: 20px; display: grid; place-items: center; 
         }
         #fileInput { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 10; }
         canvas { position: absolute; max-width: 100%; max-height: 100%; z-index: 5; }
         
-        .status-bar { display: flex; justify-content: space-between; background: #f5f5f5; padding: 10px; border-radius: 10px; margin-bottom: 15px; font-size: 12px; font-weight: bold; color: var(--accent); }
+        .status-bar { display: flex; justify-content: space-between; background: #f1f5f9; padding: 12px; border-radius: 12px; margin-bottom: 20px; font-size: 11px; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.5px; }
 
-        .panel { background: #fafafa; padding: 15px; border-radius: 12px; margin-bottom: 12px; border: 1px solid #e0e0e0; }
-        h3 { font-size: 13px; margin: 0 0 12px 0; color: var(--accent); text-transform: uppercase; border-bottom: 1px solid #eee; padding-bottom: 5px; }
-        
-        label { font-size: 11px; color: #666; display: flex; justify-content: space-between; margin-bottom: 5px; font-weight: 600; }
-        input[type="range"] { width: 100%; accent-color: var(--primary); height: 5px; }
-        
-        /* Custom Resolution Inputs */
-        .res-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-        .res-input-box { background: #fff; border: 1px solid #ddd; padding: 5px 10px; border-radius: 8px; display: flex; flex-direction: column; }
-        .res-input-box span { font-size: 9px; color: #888; text-transform: uppercase; }
-        .res-input-box input { border: none; font-size: 14px; font-weight: bold; outline: none; width: 100%; color: var(--accent); }
+        .panel { background: #ffffff; padding: 16px; border-radius: 16px; margin-bottom: 16px; border: 1px solid #f1f5f9; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        h3 { font-size: 12px; margin: 0 0 12px 0; color: #64748b; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 8px; }
+        h3::after { content: ''; flex: 1; height: 1px; background: #f1f5f9; }
 
-        .flex-row { display: flex; gap: 10px; align-items: center; margin-top: 5px; }
-        .mode-box { background: #fff; padding: 10px; border-radius: 10px; border: 1px solid #ddd; flex: 1; display: flex; align-items: center; justify-content: space-between; }
+        label { font-size: 11px; color: #64748b; display: flex; justify-content: space-between; margin-bottom: 6px; font-weight: 600; }
+        input[type="range"] { width: 100%; accent-color: var(--primary); height: 6px; border-radius: 10px; appearance: none; background: #e2e8f0; cursor: pointer; }
+
+        /* Pro Color Picker Design */
+        .color-section { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 15px; }
+        .color-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 10px; display: flex; flex-direction: column; align-items: center; transition: 0.2s; }
+        .color-card:hover { border-color: var(--primary); background: #f5f3ff; }
+        .color-card span { font-size: 9px; font-weight: 800; color: #64748b; margin-top: 8px; text-transform: uppercase; }
         
-        .switch { position: relative; width: 34px; height: 18px; }
+        .picker-wrapper { width: 40px; height: 40px; border-radius: 50%; overflow: hidden; border: 3px solid white; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); position: relative; }
+        input[type="color"] { position: absolute; top: -5px; left: -5px; width: 60px; height: 60px; border: none; cursor: pointer; padding: 0; background: none; }
+
+        .flex-row { display: flex; gap: 12px; align-items: center; margin-bottom: 15px; }
+        .toggle-box { background: #f8fafc; padding: 12px; border-radius: 14px; border: 1px solid #e2e8f0; flex: 1; display: flex; align-items: center; justify-content: space-between; }
+        
+        .switch { position: relative; width: 36px; height: 20px; }
         .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; inset: 0; background: #ccc; transition: .4s; border-radius: 18px; }
-        .slider:before { position: absolute; content: ""; height: 12px; width: 12px; left: 3px; bottom: 3px; background: white; transition: .4s; border-radius: 50%; }
+        .slider { position: absolute; cursor: pointer; inset: 0; background: #cbd5e1; transition: .4s; border-radius: 20px; }
+        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background: white; transition: .4s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         input:checked + .slider { background: var(--primary); }
         input:checked + .slider:before { transform: translateX(16px); }
 
-        /* Colors Section */
-        .color-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
-        .color-item { display: flex; flex-direction: column; align-items: center; text-align: center; }
-        .color-item span { font-size: 9px; color: #777; margin-top: 4px; line-height: 1.1; font-weight: bold; }
-        input[type="color"] { width: 100%; height: 35px; border: none; border-radius: 8px; cursor: pointer; background: #eee; padding: 2px; }
+        .btn-main { width: 100%; padding: 18px; border: none; border-radius: 16px; font-weight: 700; font-size: 14px; cursor: pointer; background: var(--primary); color: #fff; transition: 0.3s; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3); }
+        .btn-main:hover { transform: translateY(-2px); box-shadow: 0 20px 25px -5px rgba(79, 70, 229, 0.4); }
 
-        .btn-main { width: 100%; padding: 16px; border: none; border-radius: 12px; font-weight: bold; font-size: 15px; cursor: pointer; background: var(--primary); color: #fff; box-shadow: 0 4px 15px rgba(0, 230, 118, 0.3); text-transform: uppercase; margin-top: 5px; }
-        #loader { position: fixed; inset: 0; background: rgba(255,255,255,0.9); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 100; }
+        #loader { position: fixed; inset: 0; background: rgba(255,255,255,0.95); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 100; }
+        .loader-ring { width: 48px; height: 48px; border: 4px solid #e2e8f0; border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 16px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
-<div id="loader"><h1 id="prog" style="color:var(--accent)">0%</h1><p>Generating Sticker...</p></div>
+<div id="loader">
+    <div class="loader-ring"></div>
+    <h1 id="prog" style="color:var(--primary); font-size: 32px; margin: 0;">0%</h1>
+    <p style="font-weight: 600; color: #64748b;">Perfecting Your Sticker...</p>
+</div>
 
 <div class="container">
     <div class="preview-area">
         <input type="file" id="fileInput" accept="image/gif">
         <canvas id="c"></canvas>
-        <div id="h" style="font-weight: bold; color: var(--accent);">LOAD GIF TO START</div>
+        <div id="h" style="font-weight: 700; color: #94a3b8; font-size: 14px;">TAP TO UPLOAD GIF</div>
     </div>
 
     <div class="status-bar">
-        <span>SOURCE: <span id="rI">0x0</span></span>
-        <span>FRAMES: <span id="fC">0</span></span>
+        <span><span id="rI">0x0</span> RES</span>
+        <span><span id="fC">0</span> FRAMES</span>
     </div>
 
     <div class="panel">
-        <h3>Resolution & Frame Rate</h3>
-        <div class="res-row">
-            <div class="res-input-box"><span>Custom Width</span><input type="number" id="wInput" value="512"></div>
-            <div class="res-input-box"><span>Custom Height</span><input type="number" id="hInput" value="512"></div>
+        <h3>Resolution & Timing</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px;">
+            <div style="background:#f8fafc; padding:10px; border-radius:12px; border:1px solid #e2e8f0;">
+                <label style="font-size:9px;">Width</label>
+                <input type="number" id="wInput" value="512" style="width:100%; border:none; background:none; font-weight:700; color:var(--primary); outline:none;">
+            </div>
+            <div style="background:#f8fafc; padding:10px; border-radius:12px; border:1px solid #e2e8f0;">
+                <label style="font-size:9px;">Height</label>
+                <input type="number" id="hInput" value="512" style="width:100%; border:none; background:none; font-weight:700; color:var(--primary); outline:none;">
+            </div>
         </div>
-        <label>Frame Rate Resolution <span id="sV">30ms</span></label>
+        <label>Frame Delay <span id="sV">30ms</span></label>
         <input type="range" id="sS" min="10" max="200" value="30">
     </div>
 
     <div class="panel">
-        <h3>Object Properties</h3>
-        <label>Object Fit (Safe Area) <span id="fitV">70%</span></label>
-        <input type="range" id="fitS" min="20" max="95" value="70">
-        <label style="margin-top:8px;">Alpha Removal Accuracy <span id="accV">45%</span></label>
-        <input type="range" id="accS" min="0" max="100" value="45">
-    </div>
-
-    <div class="panel">
-        <h3>Visual FX & Glow</h3>
+        <h3>Advanced Effects</h3>
         <div class="flex-row">
-            <div class="mode-box">
-                <span style="font-size:11px; font-weight:bold;">Animated RGB</span>
+            <div class="toggle-box">
+                <span style="font-size:11px; font-weight:700;">RGB GLOW</span>
                 <label class="switch"><input type="checkbox" id="rgb"><span class="slider"></span></label>
             </div>
-            <div class="mode-box">
-                <span style="font-size:11px; font-weight:bold;">Shadow Depth</span>
-                <input type="range" id="shS" min="0" max="100" value="40" style="width:60px">
+            <div class="toggle-box">
+                <span style="font-size:11px; font-weight:700;">SHADOW</span>
+                <input type="range" id="shS" min="0" max="100" value="40" style="width:50px">
             </div>
         </div>
-        <div style="margin-top:12px;">
-            <label>Outline / Stroke Width <span id="wV">10px</span></label>
-            <input type="range" id="wS" min="0" max="40" value="10">
-        </div>
-        <div class="color-grid">
-            <div class="color-item"><input type="color" id="bgC" value="#ffffff"><span>BG REMOVAL</span></div>
-            <div class="color-item"><input type="color" id="stC" value="#ffffff"><span>STROKE COLOR</span></div>
-            <div class="color-item"><input type="color" id="glC" value="#ff00ff"><span>GLOW COLOR</span></div>
+        
+        <label>Outline Width <span id="wV">10px</span></label>
+        <input type="range" id="wS" min="0" max="40" value="10">
+
+        <div class="color-section">
+            <div class="color-card">
+                <div class="picker-wrapper"><input type="color" id="bgC" value="#ffffff"></div>
+                <span>BG Clean</span>
+            </div>
+            <div class="color-card">
+                <div class="picker-wrapper"><input type="color" id="stC" value="#ffffff"></div>
+                <span>Outline</span>
+            </div>
+            <div class="color-card">
+                <div class="picker-wrapper"><input type="color" id="glC" value="#6366f1"></div>
+                <span>Glow</span>
+            </div>
         </div>
     </div>
 
-    <button class="btn-main" id="dl">Generate Sticker</button>
+    <button class="btn-main" id="dl">Download Pro Sticker</button>
 </div>
 
 <script>
     const up = document.getElementById('fileInput'), c = document.getElementById('c'), ctx = c.getContext('2d');
     const wIn = document.getElementById('wInput'), hIn = document.getElementById('hInput'), sS = document.getElementById('sS');
-    const fitS = document.getElementById('fitS'), accS = document.getElementById('accS'), wS = document.getElementById('wS'), shS = document.getElementById('shS');
+    const fitS = {value: 70}, accS = {value: 45}, wS = document.getElementById('wS'), shS = document.getElementById('shS');
     const rgb = document.getElementById('rgb'), bgC = document.getElementById('bgC'), stC = document.getElementById('stC'), glC = document.getElementById('glC');
     const dl = document.getElementById('dl'), loader = document.getElementById('loader'), prog = document.getElementById('prog');
 
@@ -160,9 +174,9 @@
 
         const out = document.createElement('canvas'); out.width = W; out.height = H;
         const ox = out.getContext('2d');
-        let glow = glC.value; if(rgb.checked) glow = `hsl(${(idx*15)%360},100%,50%)`;
+        let glow = glC.value; if(rgb.checked) glow = `hsl(${(idx*15)%360},100%,60%)`;
 
-        if(shS.value > 0) { ox.shadowColor = `rgba(0,0,0,${shS.value/100})`; ox.shadowBlur = 15; ox.shadowOffsetY = 5; }
+        if(shS.value > 0) { ox.shadowColor = `rgba(0,0,0,${shS.value/150})`; ox.shadowBlur = 20; ox.shadowOffsetY = 10; }
         
         const stroke = parseInt(wS.value);
         if(stroke > 0) {
@@ -171,7 +185,7 @@
             for(let x=-stroke; x<=stroke; x+=2) for(let y=-stroke; y<=stroke; y+=2) if(x*x+y*y <= stroke*stroke) sx.drawImage(tc, x, y);
             sx.globalCompositeOperation = 'source-in'; sx.fillRect(0,0,W,H);
             sx.globalCompositeOperation = 'source-over'; sx.drawImage(tc, 0, 0);
-            ox.shadowColor = glow; ox.shadowBlur = 15; ox.drawImage(sx.canvas, 0, 0);
+            ox.shadowColor = glow; ox.shadowBlur = 25; ox.drawImage(sx.canvas, 0, 0);
         } else { ox.drawImage(tc, 0, 0); }
         return out;
     }
@@ -181,15 +195,15 @@
     dl.onclick = async () => {
         if(!frames.length) return;
         loader.style.display = 'flex';
-        const gif = new GIF({ workers: 2, quality: 10, workerScript: URL.createObjectURL(await fetch('https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.worker.js').then(r => r.blob())), transparent: 'rgba(0,0,0,0)', width: c.width, height: c.height });
+        const gif = new GIF({ workers: 4, quality: 5, workerScript: URL.createObjectURL(await fetch('https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.worker.js').then(r => r.blob())), transparent: 'rgba(0,0,0,0)', width: c.width, height: c.height });
         frames.forEach((f, i) => gif.addFrame(process(f, i, true), {delay: sS.value, copy: true, disposal: 2}));
         gif.on('progress', p => prog.innerText = Math.round(p*100)+'%');
-        gif.on('finished', b => { const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'custom_sticker.gif'; a.click(); loader.style.display = 'none'; });
+        gif.on('finished', b => { const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'pro_sticker.gif'; a.click(); loader.style.display = 'none'; });
         gif.render();
     };
 
-    [wIn, hIn, sS, fitS, accS, wS, shS, bgC, stC, glC, rgb].forEach(el => el.oninput = () => {
-        const v = document.getElementById(el.id.replace('S','V')); if(v) v.innerText = el.value + (el.id==='wS'?'px':(el.id==='sS'?'ms':'%'));
+    [wIn, hIn, sS, wS, shS, bgC, stC, glC, rgb].forEach(el => el.oninput = () => {
+        const v = document.getElementById(el.id.replace('S','V')); if(v) v.innerText = el.value + (el.id==='wS'?'px':(el.id==='sS'?'ms':''));
         updateCanvas();
         if(el.id==='sS' && tid) { clearInterval(tid); tid = setInterval(() => { render(); cur = (cur+1)%frames.length; }, sS.value); }
         render();
@@ -197,3 +211,4 @@
 </script>
 </body>
 </html>
+
