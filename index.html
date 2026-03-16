@@ -3,111 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Giphy Pro - Ultimate Safe-Zone Fix</title>
+    <title>Giphy Sticker Master - High Accuracy</title>
     <script src="https://unpkg.com/gif-frames/dist/gif-frames.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
     <style>
         :root { --primary: #00ff62; --bg: #0a0a0a; --card: #151515; }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: white; margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; }
-        .studio-card { background: var(--card); border-radius: 24px; width: 100%; max-width: 500px; padding: 20px; box-shadow: 0 15px 50px rgba(0,0,0,0.5); border: 1px solid #222; box-sizing: border-box; }
-        
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: white; margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; }
+        .studio-card { background: var(--card); border-radius: 20px; width: 100%; max-width: 480px; padding: 15px; border: 1px solid #222; }
         .screen { 
             width: 100%; aspect-ratio: 1/1; background-color: #fff;
-            background-image: linear-gradient(45deg, #e0e0e0 25%, transparent 25%), linear-gradient(-45deg, #e0e0e0 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #e0e0e0 75%), linear-gradient(-45deg, transparent 75%, #e0e0e0 75%);
-            background-size: 20px 20px; border-radius: 16px; position: relative; overflow: hidden; border: 1px solid #333; margin-bottom: 15px; display: grid; place-items: center; 
+            background-image: linear-gradient(45deg, #eee 25%, transparent 25%), linear-gradient(-45deg, #eee 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #eee 75%), linear-gradient(-45deg, transparent 75%, #eee 75%);
+            background-size: 20px 20px; border-radius: 12px; position: relative; overflow: hidden; border: 1px solid #333; margin-bottom: 10px; display: grid; place-items: center; 
         }
-        
         #up { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 10; }
-        #empty { color: #000; font-weight: bold; text-align: center; z-index: 1; pointer-events: none; }
-        canvas { position: absolute; max-width: 100%; max-height: 100%; z-index: 5; pointer-events: none; }
-        
-        .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-        .meta-box { background: #1e1e1e; padding: 10px; border-radius: 12px; border: 1px solid #333; }
-        .meta-label { font-size: 10px; color: #888; text-transform: uppercase; }
-        .meta-val { font-size: 14px; font-weight: bold; color: var(--primary); display: block; margin-top: 4px; }
-        
-        .control-section { background: #1a1a1a; padding: 15px; border-radius: 16px; margin-bottom: 15px; }
-        label { font-size: 12px; font-weight: 600; color: #bbb; display: flex; justify-content: space-between; margin-bottom: 8px; }
-        input[type="range"] { width: 100%; accent-color: var(--primary); cursor: pointer; margin-bottom: 10px; }
-        
-        .color-group { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 5px; }
-        input[type="color"] { width: 100%; height: 35px; border: none; border-radius: 8px; background: #222; cursor: pointer; }
-        
-        .btn { width: 100%; padding: 16px; border: none; border-radius: 14px; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.2s; }
-        .btn-up { background: #333; color: white; margin-bottom: 10px; border: 1px solid #444; }
-        .btn-exp { background: var(--primary); color: #000; }
-        #loader { position: fixed; inset: 0; background: rgba(0,0,0,0.95); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 99; }
+        canvas { position: absolute; max-width: 100%; max-height: 100%; z-index: 5; }
+        .control-section { background: #1a1a1a; padding: 12px; border-radius: 12px; margin-bottom: 10px; }
+        label { font-size: 11px; color: #bbb; display: flex; justify-content: space-between; margin-bottom: 5px; text-transform: uppercase; }
+        input[type="range"] { width: 100%; accent-color: var(--primary); cursor: pointer; }
+        .color-group { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+        input[type="color"] { width: 100%; height: 30px; border: none; border-radius: 5px; cursor: pointer; background: transparent; }
+        .btn-exp { width: 100%; padding: 15px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 16px; background: var(--primary); color: #000; margin-top: 5px; }
+        #loader { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 99; }
     </style>
 </head>
 <body>
 
 <div id="loader">
-    <h1 id="prog" style="color:var(--primary)">0%</h1>
-    <p id="lMsg" style="color:white">Applying Safe-Zone Effects...</p>
+    <h2 id="prog" style="color:var(--primary)">0%</h2>
+    <p>Fixing Giphy Visibility...</p>
 </div>
 
 <div class="studio-card">
     <div class="screen">
         <input type="file" id="up" accept="image/gif">
-        <div id="empty">Click to Import GIF</div>
         <canvas id="c"></canvas>
     </div>
 
-    <div class="meta-grid">
-        <div class="meta-box"><span class="meta-label">Original Size</span><span class="meta-val" id="oS">0x0</span></div>
-        <div class="meta-box"><span class="meta-label">Status</span><span class="meta-val" id="tRes">Ready</span></div>
-    </div>
-
-    <button class="btn btn-up" onclick="document.getElementById('up').click()">LOAD ASSET</button>
-
     <div class="control-section">
-        <label>Object Fit (Giphy Safe) <span id="scV">70%</span></label>
-        <input type="range" id="scS" min="20" max="95" value="70">
-
-        <label>Alpha Accuracy <span id="tV">45%</span></label>
+        <label>Object Fit (Safety Zone) <span id="scV">70%</span></label>
+        <input type="range" id="scS" min="30" max="90" value="70">
+        
+        <label style="margin-top:10px;">Alpha Accuracy <span id="tV">45%</span></label>
         <input type="range" id="tS" min="0" max="100" value="45">
 
         <div class="color-group">
-            <div><label>Remove BG</label><input type="color" id="bgC" value="#ffffff"></div>
+            <div><label>Remove</label><input type="color" id="bgC" value="#ffffff"></div>
             <div><label>Stroke</label><input type="color" id="stC" value="#ffffff"></div>
             <div><label>Glow</label><input type="color" id="glC" value="#ff00ff"></div>
         </div>
     </div>
 
     <div class="control-section">
-        <label>Neon Glow Blur <span id="glV">20px</span></label>
-        <input type="range" id="glS" min="0" max="60" value="20">
+        <label>Neon Glow Spread <span id="glV">25px</span></label>
+        <input type="range" id="glS" min="0" max="60" value="25">
         
-        <label>Shadow Intensity <span id="shV">50%</span></label>
-        <input type="range" id="shS" min="0" max="100" value="50">
+        <label style="margin-top:10px;">Shadow Depth <span id="shV">60%</span></label>
+        <input type="range" id="shS" min="0" max="100" value="60">
         
-        <label>Stroke Width <span id="wV">12px</span></label>
-        <input type="range" id="wS" min="0" max="40" value="12">
+        <label style="margin-top:10px;">Outline Width <span id="wV">15px</span></label>
+        <input type="range" id="wS" min="0" max="40" value="15">
     </div>
 
-    <button class="btn btn-exp" id="dl">GENERATE GIPHY STICKER</button>
+    <button class="btn-exp" id="dl">FIX & DOWNLOAD FOR GIPHY</button>
 </div>
 
 <script>
     const up = document.getElementById('up'), c = document.getElementById('c'), ctx = c.getContext('2d');
-    const scS = document.getElementById('scS'), tS = document.getElementById('tS'), wS = document.getElementById('wS');
-    const bgC = document.getElementById('bgC'), stC = document.getElementById('stC'), glC = document.getElementById('glC'), glS = document.getElementById('glS'), shS = document.getElementById('shS');
+    const scS = document.getElementById('scS'), tS = document.getElementById('tS'), wS = document.getElementById('wS'), bgC = document.getElementById('bgC'), stC = document.getElementById('stC'), glC = document.getElementById('glC'), glS = document.getElementById('glS'), shS = document.getElementById('shS');
     const dl = document.getElementById('dl'), loader = document.getElementById('loader'), prog = document.getElementById('prog');
     
     let frames = [], cur = 0, tid = null, ow = 0, oh = 0;
 
     up.onchange = async (e) => {
         const file = e.target.files[0]; if(!file) return;
-        document.getElementById('empty').style.display = 'none';
         loader.style.display = 'flex';
-        try {
-            const res = await gifFrames({ url: URL.createObjectURL(file), frames: 'all', outputType: 'canvas' });
-            frames = res.map(f => f.getImage());
-            ow = frames[0].width; oh = frames[0].height;
-            document.getElementById('oS').innerText = `${ow}x${oh}`;
-            c.width = 540; c.height = 540;
-            startLoop();
-        } catch (err) { alert("Error loading asset."); }
+        const res = await gifFrames({ url: URL.createObjectURL(file), frames: 'all', outputType: 'canvas' });
+        frames = res.map(f => f.getImage());
+        ow = frames[0].width; oh = frames[0].height;
+        c.width = 540; c.height = 540;
+        startLoop();
         loader.style.display = 'none';
     };
 
@@ -118,17 +92,15 @@
 
     function process(img, isExport = false) {
         const size = 540;
-        const tempC = document.createElement('canvas'); tempC.width = size; tempC.height = size;
-        const tctx = tempC.getContext('2d');
-        
+        const tc = document.createElement('canvas'); tc.width = size; tc.height = size;
+        const tx = tc.getContext('2d');
         const scale = parseInt(scS.value) / 100;
         const aspect = ow / oh;
         let dw = aspect > 1 ? size * scale : (size * scale) * aspect;
         let dh = aspect > 1 ? (size * scale) / aspect : size * scale;
         
-        tctx.drawImage(img, (size-dw)/2, (size-dh)/2, dw, dh);
-
-        const id = tctx.getImageData(0,0,size,size), d = id.data;
+        tx.drawImage(img, (size-dw)/2, (size-dh)/2, dw, dh);
+        const id = tx.getImageData(0,0,size,size), d = id.data;
         const target = {r:parseInt(bgC.value.slice(1,3),16), g:parseInt(bgC.value.slice(3,5),16), b:parseInt(bgC.value.slice(5,7),16)};
         const tol = parseInt(tS.value) * 2.55;
 
@@ -137,40 +109,36 @@
             if (diff < tol) d[i+3] = 0;
             else if (isExport) d[i+3] = 255;
         }
-        tctx.putImageData(id, 0, 0);
+        tx.putImageData(id, 0, 0);
 
         const out = document.createElement('canvas'); out.width = size; out.height = size;
         const ox = out.getContext('2d');
 
-        // Strong Shadow for Giphy
+        // Giphy Visibility Fix: Layered Shadow & Glow
         if(shS.value > 0) {
             ox.shadowColor = `rgba(0,0,0,${shS.value/100})`;
-            ox.shadowBlur = 15;
-            ox.shadowOffsetY = 8;
+            ox.shadowBlur = 20; ox.shadowOffsetY = 10;
         }
-
-        // Glow for Premium Look
         if(glS.value > 0) {
             ox.shadowColor = glC.value;
             ox.shadowBlur = parseInt(glS.value);
         }
 
-        // Professional Stroke
         const stroke = parseInt(wS.value);
         if (stroke > 0) {
-            const sCanvas = document.createElement('canvas'); sCanvas.width = size; sCanvas.height = size;
-            const sctx = sCanvas.getContext('2d');
-            sctx.fillStyle = stC.value;
+            const sx = document.createElement('canvas').getContext('2d');
+            sx.canvas.width = size; sx.canvas.height = size;
+            sx.fillStyle = stC.value;
             for(let x = -stroke; x <= stroke; x++) {
                 for(let y = -stroke; y <= stroke; y++) {
-                    if(x*x + y*y <= stroke*stroke) sctx.drawImage(tempC, x, y);
+                    if(x*x + y*y <= stroke*stroke) sx.drawImage(tc, x, y);
                 }
             }
-            sctx.globalCompositeOperation = 'source-in'; sctx.fillRect(0,0,size,size);
-            sctx.globalCompositeOperation = 'source-over'; sctx.drawImage(tempC, 0, 0);
-            ox.drawImage(sCanvas, 0, 0);
+            sx.globalCompositeOperation = 'source-in'; sx.fillRect(0,0,size,size);
+            sx.globalCompositeOperation = 'source-over'; sx.drawImage(tc, 0, 0);
+            ox.drawImage(sx.canvas, 0, 0);
         } else {
-            ox.drawImage(tempC, 0, 0);
+            ox.drawImage(tc, 0, 0);
         }
         return out;
     }
@@ -185,19 +153,19 @@
         if(!frames.length) return;
         loader.style.display = 'flex';
         const b = await fetch('https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.worker.js').then(r => r.blob());
-        const gif = new GIF({ workers: 4, quality: 5, workerScript: URL.createObjectURL(b), transparent: 'rgba(0,0,0,0)', width: 540, height: 540 });
-        frames.forEach(f => gif.addFrame(process(f, true), {delay: 1000/30, copy: true, disposal: 2}));
+        const gif = new GIF({ workers: 4, quality: 3, workerScript: URL.createObjectURL(b), transparent: 'rgba(0,0,0,0)', width: 540, height: 540 });
+        frames.forEach(f => gif.addFrame(process(f, true), {delay: 33, copy: true, disposal: 2}));
         gif.on('progress', p => prog.innerText = Math.round(p * 100) + "%");
         gif.on('finished', b => {
-            const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `giphy_safe_sticker.gif`; a.click();
+            const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `giphy_fixed.gif`; a.click();
             loader.style.display = 'none';
         });
         gif.render();
     };
 
     [scS, tS, wS, glS, shS, bgC, stC, glC].forEach(el => el.oninput = () => {
-        const display = document.getElementById(el.id.replace('S','V'));
-        if(display) display.innerText = el.value + (el.id==='shS'||el.id==='scS'||el.id==='tS'?'%':'px');
+        const d = document.getElementById(el.id.replace('S','V'));
+        if(d) d.innerText = el.value + (el.id==='shS'||el.id==='scS'||el.id==='tS'?'%':'px');
         if(frames.length) draw();
     });
 </script>
