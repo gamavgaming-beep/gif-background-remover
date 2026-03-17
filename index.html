@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GIPHY PRO STUDIO | ULTIMATE</title>
+    <title>GIPHY PRO STUDIO | MASTER A-Z</title>
     <script src="https://unpkg.com/gif-frames/dist/gif-frames.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
     <style>
@@ -11,11 +11,10 @@
             --primary: #00ff88;
             --secondary: #6366f1;
             --dark-bg: #0b0f1a;
-            --surface: rgba(23, 28, 41, 0.95);
+            --surface: rgba(23, 28, 41, 0.96);
             --border: rgba(255, 255, 255, 0.08);
         }
 
-        /* Professional Animated BG */
         body {
             margin: 0; padding: 20px; font-family: 'Inter', sans-serif;
             background: radial-gradient(circle at top right, #1e1b4b, #0b0f1a);
@@ -27,7 +26,7 @@
             font-size: 28px; font-weight: 900; margin: 0;
             background: linear-gradient(90deg, var(--primary), var(--secondary));
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            text-transform: uppercase;
+            text-transform: uppercase; letter-spacing: 1px;
         }
 
         .app-shell {
@@ -36,7 +35,7 @@
             border: 1px solid var(--border); box-shadow: 0 40px 80px rgba(0,0,0,0.5);
         }
 
-        /* Centered Viewport with Alpha Pattern */
+        /* Centered Viewport & Alpha Pattern */
         .preview-viewport {
             width: 100%; aspect-ratio: 1/1; background-color: #fff;
             background-image: linear-gradient(45deg, #ddd 25%, transparent 25%), linear-gradient(-45deg, #ddd 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ddd 75%), linear-gradient(-45deg, transparent 75%, #ddd 75%);
@@ -47,13 +46,12 @@
 
         #hint { 
             position: absolute; color: #64748b; font-weight: 800; text-align: center; 
-            font-size: 13px; z-index: 2; pointer-events: none;
+            font-size: 13px; z-index: 2; pointer-events: none; text-transform: uppercase;
         }
 
         canvas { max-width: 95%; max-height: 95%; z-index: 5; }
         input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; z-index: 10; }
 
-        /* Meta Info Strip */
         .status-strip {
             display: flex; justify-content: space-between; background: rgba(0,0,0,0.3);
             padding: 10px 18px; border-radius: 12px; margin-bottom: 20px;
@@ -67,50 +65,55 @@
 
         h3 { font-size: 10px; color: #94a3b8; text-transform: uppercase; margin: 0 0 15px 0; letter-spacing: 1px; }
 
-        /* Frame Rate Toggle (Select UI) */
-        .input-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 15px; }
-        .input-group label { font-size: 11px; color: #94a3b8; font-weight: 600; }
+        /* Custom Width & Height Inputs */
+        .res-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px; }
+        .res-box { background: rgba(0,0,0,0.25); padding: 10px; border-radius: 12px; border: 1px solid var(--border); }
+        .res-box small { font-size: 8px; color: #64748b; display: block; margin-bottom: 4px; font-weight: 800; }
+        .res-box input { background: none; border: none; color: #fff; font-weight: 700; width: 100%; outline: none; font-size: 14px; }
+
+        /* Frame Rate Dropdown */
+        .input-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 5px; }
         select {
             background: #1a202c; color: #fff; border: 1px solid var(--border);
             padding: 12px; border-radius: 12px; font-weight: 700; outline: none; cursor: pointer;
         }
 
-        /* Sliders UI */
+        /* Sliders */
         .slider-row { margin-bottom: 15px; }
-        .slider-header { display: flex; justify-content: space-between; font-size: 11px; color: #94a3b8; margin-bottom: 8px; }
+        .slider-header { display: flex; justify-content: space-between; font-size: 11px; color: #94a3b8; margin-bottom: 8px; font-weight: 600; }
         input[type="range"] { -webkit-appearance: none; width: 100%; height: 4px; background: #2d3748; border-radius: 10px; }
         input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; background: var(--primary); border-radius: 50%; border: 3px solid #fff; cursor: pointer; }
 
-        /* Color Section */
+        /* Colors */
         .color-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 10px; }
-        .color-node { width: 45px; height: 45px; border-radius: 50%; border: 3px solid #fff; position: relative; overflow: hidden; margin: 0 auto; box-shadow: 0 10px 15px rgba(0,0,0,0.3); }
+        .color-node { width: 45px; height: 45px; border-radius: 50%; border: 3px solid #fff; position: relative; overflow: hidden; margin: 0 auto; box-shadow: 0 8px 16px rgba(0,0,0,0.4); }
         input[type="color"] { position: absolute; top: -10px; left: -10px; width: 70px; height: 70px; cursor: pointer; }
 
-        /* Professional Download Button */
         .btn-download {
             width: 100%; padding: 20px; background: linear-gradient(90deg, var(--primary), #00d472);
             color: #0b0f1a; border: none; border-radius: 20px; font-size: 15px;
-            font-weight: 800; text-transform: uppercase; cursor: pointer; transition: 0.3s;
+            font-weight: 900; text-transform: uppercase; cursor: pointer; transition: 0.3s;
         }
 
-        /* Professional Progress UI */
+        /* Progress UI */
         #progressOverlay {
             position: fixed; inset: 0; background: rgba(11, 15, 26, 0.98);
             display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 1000;
         }
-        .progress-container { width: 80%; max-width: 300px; text-align: center; }
-        .progress-bar-bg { height: 6px; width: 100%; background: #1a202c; border-radius: 10px; margin: 20px 0; overflow: hidden; }
-        #progressFill { height: 100%; width: 0%; background: var(--primary); transition: 0.2s; box-shadow: 0 0 15px var(--primary); }
-        #progressPercent { font-size: 48px; font-weight: 900; color: var(--primary); margin: 0; }
+        .progress-box { width: 80%; max-width: 320px; text-align: center; }
+        #progressFill { height: 6px; width: 0%; background: var(--primary); border-radius: 10px; transition: 0.2s; box-shadow: 0 0 15px var(--primary); }
+        #progressPercent { font-size: 64px; font-weight: 900; color: var(--primary); margin: 0; }
     </style>
 </head>
 <body>
 
 <div id="progressOverlay">
-    <div class="progress-container">
+    <div class="progress-box">
         <p id="progressPercent">0%</p>
-        <div class="progress-bar-bg"><div id="progressFill"></div></div>
-        <p style="font-size: 11px; color: #64748b; letter-spacing: 2px; font-weight: 800;">PACKING YOUR STICKER...</p>
+        <div style="height: 6px; width: 100%; background: #1a202c; border-radius: 10px; margin: 20px 0; overflow: hidden;">
+            <div id="progressFill"></div>
+        </div>
+        <p style="font-size: 10px; color: #64748b; letter-spacing: 3px; font-weight: 800; text-transform: uppercase;">Generating Pro Sticker</p>
     </div>
 </div>
 
@@ -122,20 +125,23 @@
     <div class="preview-viewport">
         <input type="file" id="gifInput" accept="image/gif">
         <canvas id="canvas"></canvas>
-        <div id="hint">DROP GIF OR TAP TO LOAD</div>
+        <div id="hint">DROP GIF SOURCE<br>OR TAP TO LOAD</div>
     </div>
 
     <div class="status-strip">
-        <span>RESOLUTION: <span id="infoRes">0x0</span></span>
+        <span>SIZE: <span id="infoRes">0x0</span></span>
         <span>FRAMES: <span id="infoFrames">0</span></span>
     </div>
 
     <div class="control-panel">
-        <h3>Frame Configuration</h3>
+        <h3>Canvas & Frame Settings</h3>
+        <div class="res-grid">
+            <div class="res-box"><small>WIDTH</small><input type="number" id="wIn" value="512"></div>
+            <div class="res-box"><small>HEIGHT</small><input type="number" id="hIn" value="512"></div>
+        </div>
         <div class="input-group">
-            <label>Select Frame Rate (FPS)</label>
             <select id="fpsSelect">
-                <option value="80">12 fps</option>
+                <option value="83">12 fps</option>
                 <option value="66">15 fps</option>
                 <option value="55">18 fps</option>
                 <option value="50">20 fps</option>
@@ -147,7 +153,11 @@
     </div>
 
     <div class="control-panel">
-        <h3>Object & FX</h3>
+        <h3>Object FX Control</h3>
+        <div class="slider-row">
+            <div class="slider-header"><span>Object Fit</span><span id="fitVal">70%</span></div>
+            <input type="range" id="fitSl" min="20" max="95" value="70">
+        </div>
         <div class="slider-row">
             <div class="slider-header"><span>Alpha Accuracy</span><span id="accVal">45%</span></div>
             <input type="range" id="accSl" min="0" max="100" value="45">
@@ -168,12 +178,13 @@
         <div class="color-node"><input type="color" id="cGlw" value="#6366f1"></div>
     </div>
     <br>
-    <button class="btn-download" id="btnExport">Generate Master Sticker</button>
+    <button class="btn-download" id="btnExport">Generate Giphy Sticker</button>
 </div>
 
 <script>
     const input = document.getElementById('gifInput'), cvs = document.getElementById('canvas'), ctx = cvs.getContext('2d');
-    const fpsSel = document.getElementById('fpsSelect'), accSl = document.getElementById('accSl'), shdSl = document.getElementById('shdSl'), strSl = document.getElementById('strSl');
+    const wIn = document.getElementById('wIn'), hIn = document.getElementById('hIn'), fpsSel = document.getElementById('fpsSelect');
+    const fitSl = document.getElementById('fitSl'), accSl = document.getElementById('accSl'), shdSl = document.getElementById('shdSl'), strSl = document.getElementById('strSl');
     const cBg = document.getElementById('cBg'), cStr = document.getElementById('cStr'), cGlw = document.getElementById('cGlw');
     const expBtn = document.getElementById('btnExport'), overlay = document.getElementById('progressOverlay'), pFill = document.getElementById('progressFill'), pTxt = document.getElementById('progressPercent');
 
@@ -187,7 +198,7 @@
         ow = frames[0].width; oh = frames[0].height;
         document.getElementById('infoRes').innerText = ow+'x'+oh;
         document.getElementById('infoFrames').innerText = frames.length;
-        cvs.width = 512; cvs.height = 512;
+        cvs.width = wIn.value; cvs.height = hIn.value;
         startPlayback();
     };
 
@@ -197,12 +208,13 @@
     }
 
     function process(img, isFinal = false) {
-        const W = 512, H = 512;
+        const W = parseInt(wIn.value), H = parseInt(hIn.value);
         const tC = document.createElement('canvas'); tC.width = W; tC.height = H;
         const tx = tC.getContext('2d');
+        const scale = fitSl.value / 100;
         const ratio = ow / oh;
-        let dw = (ratio > 1) ? W*0.7 : (H*0.7)*ratio;
-        let dh = (ratio > 1) ? (W*0.7)/ratio : H*0.7;
+        let dw = (ratio > W/H) ? W*scale : (H*scale)*ratio;
+        let dh = (ratio > W/H) ? (W*scale)/ratio : H*scale;
         tx.drawImage(img, (W-dw)/2, (H-dh)/2, dw, dh);
 
         const id = tx.getImageData(0,0,W,H), d = id.data;
@@ -229,12 +241,12 @@
         return out;
     }
 
-    function render() { if(frames.length) { ctx.clearRect(0,0,512,512); ctx.drawImage(process(frames[cur]), 0, 0); } }
+    function render() { if(frames.length) { ctx.clearRect(0,0,cvs.width,cvs.height); ctx.drawImage(process(frames[cur]), 0, 0); } }
 
     expBtn.onclick = () => {
         if(!frames.length) return;
         overlay.style.display = 'flex';
-        const gif = new GIF({ workers: 4, quality: 5, transparent: 'rgba(0,0,0,0)', width: 512, height: 512, workerScript: 'https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.worker.js' });
+        const gif = new GIF({ workers: 4, quality: 10, transparent: 'rgba(0,0,0,0)', width: parseInt(wIn.value), height: parseInt(hIn.value), workerScript: 'https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.worker.js' });
         frames.forEach(f => gif.addFrame(process(f, true), {delay: parseInt(fpsSel.value), copy: true, disposal: 2}));
         gif.on('progress', p => { const pct = Math.round(p*100); pTxt.innerText = pct+'%'; pFill.style.width = pct+'%'; });
         gif.on('finished', b => { 
@@ -244,8 +256,9 @@
         gif.render();
     };
 
+    [wIn, hIn].forEach(el => el.oninput = () => { cvs.width = wIn.value; cvs.height = hIn.value; render(); });
     fpsSel.onchange = startPlayback;
-    [accSl, shdSl, strSl].forEach(el => el.oninput = () => {
+    [fitSl, accSl, shdSl, strSl].forEach(el => el.oninput = () => {
         document.getElementById(el.id.replace('Sl','Val')).innerText = el.value + (el.id==='strSl'?'px':'%');
         render();
     });
