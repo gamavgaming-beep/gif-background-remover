@@ -1,194 +1,113 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Giphy Pro Studio | A to Z Ultimate</title>
-
-<script src="https://unpkg.com/gif-frames/dist/gif-frames.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
-
-<style>
-:root {
-    --accent: #00ff88;
-    --bg: #0b0f1a;
-    --surface: #171c29;
-    --text-main: #fff;
-}
-
-body {
-    background: var(--bg);
-    color: var(--text-main);
-    display:flex;
-    justify-content:center;
-    padding:15px;
-}
-
-.app-container {
-    width:100%;
-    max-width:520px;
-    background:var(--surface);
-    padding:20px;
-    border-radius:25px;
-}
-
-/* WHITE BACKGROUND PREVIEW */
-.preview-wrapper {
-    aspect-ratio:1/1;
-    background:#ffffff; /* FULL WHITE */
-    border-radius:20px;
-    display:grid;
-    place-items:center;
-    position:relative;
-    margin-bottom:20px;
-}
-
-canvas {
-    max-width:95%;
-    max-height:95%;
-}
-
-#fileInput {
-    position:absolute;
-    inset:0;
-    opacity:0;
-}
-
-/* FPS DROPDOWN */
-.select-box {
-    width:100%;
-    padding:12px;
-    border-radius:12px;
-    background:#1a202c;
-    color:#fff;
-    border:none;
-    font-weight:700;
-}
-
-/* BUTTON */
-.btn-generate {
-    width:100%;
-    padding:18px;
-    background:#00ff88;
-    border:none;
-    border-radius:15px;
-    font-weight:900;
-    margin-top:20px;
-}
-</style>
-</head>
-
-<body>
-
-<div class="app-container">
-
-<div class="preview-wrapper">
-<input type="file" id="fileInput" accept="image/gif">
-<canvas id="mainCanvas"></canvas>
-</div>
-
-<!-- FPS DROPDOWN -->
-<label>Frame Rate (FPS)</label>
-<select id="fpsSelect" class="select-box">
+<title>Pro Giphy Frame Editor</title><script src="https://unpkg.com/gif-frames/dist/gif-frames.min.js"></script><script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script><style>
+body {background:#0b0f1a;color:#fff;font-family:sans-serif;margin:0;padding:10px}
+.container{max-width:520px;margin:auto}
+canvas{width:100%;background:#fff;border-radius:15px}
+.controls{display:flex;gap:10px;margin-top:10px}
+button,select{flex:1;padding:10px;border:none;border-radius:10px;font-weight:bold}
+.timeline{display:flex;overflow-x:auto;gap:6px;margin-top:10px}
+.frame{width:60px;height:60px;border:2px solid #333;border-radius:8px;cursor:pointer}
+.active{border-color:#00ff88}
+</style></head>
+<body><div class="container">
+<canvas id="canvas" width="512" height="512"></canvas><div class="controls">
+<button id="playBtn">▶️ Play</button>
+<button id="pauseBtn">⏸ Pause</button>
+<button id="deleteBtn">🗑 Delete</button>
+</div><div class="controls">
+<select id="fps">
 <option value="12">12 FPS</option>
-<option value="15">15 FPS</option>
-<option value="18">18 FPS</option>
-<option value="20">20 FPS</option>
-<option value="24">24 FPS</option>
-<option value="25">25 FPS</option>
-<option value="30" selected>30 FPS</option>
-<option value="48">48 FPS</option>
-<option value="50">50 FPS</option>
+<option value="24" selected>24 FPS</option>
+<option value="30">30 FPS</option>
 <option value="60">60 FPS</option>
 </select>
+<button id="replaceBtn">Replace Frame</button>
+</div><input type="file" id="fileInput" accept="image/gif" style="margin-top:10px">
+<input type="file" id="replaceInput" accept="image/*" hidden><div class="timeline" id="timeline"></div><button id="exportBtn" style="margin-top:15px;width:100%;padding:15px;background:#00ff88;color:#000">Export GIF</button>
 
-<button class="btn-generate" id="btnExport">Generate Sticker</button>
-
-</div>
-
-<script>
-const fileIn = document.getElementById('fileInput');
-const canvas = document.getElementById('mainCanvas');
+</div><script>
+const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
-const fpsSelect = document.getElementById('fpsSelect');
-const exportBtn = document.getElementById('btnExport');
+const timeline = document.getElementById('timeline');
 
 let frames = [];
-let currentIdx = 0;
+let current = 0;
 let timer = null;
 
-function getDelay() {
-    return 1000 / fpsSelect.value; // FPS → ms
+function render(){
+ if(!frames.length) return;
+ ctx.clearRect(0,0,512,512);
+ ctx.drawImage(frames[current],0,0,512,512);
 }
 
-fileIn.onchange = async (e) => {
-    const file = e.target.files[0];
-    if(!file) return;
-
-    const res = await gifFrames({
-        url: URL.createObjectURL(file),
-        frames: 'all',
-        outputType: 'canvas'
-    });
-
-    frames = res.map(f => f.getImage());
-
-    canvas.width = 512;
-    canvas.height = 512;
-
-    if(timer) clearInterval(timer);
-
-    timer = setInterval(() => {
-        renderLoop();
-        currentIdx = (currentIdx + 1) % frames.length;
-    }, getDelay());
-};
-
-function renderLoop() {
-    if(!frames.length) return;
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    ctx.drawImage(frames[currentIdx],0,0,canvas.width,canvas.height);
+function buildTimeline(){
+ timeline.innerHTML="";
+ frames.forEach((f,i)=>{
+   const c=document.createElement('canvas');
+   c.width=60;c.height=60;
+   c.className='frame'+(i===current?' active':'');
+   c.getContext('2d').drawImage(f,0,0,60,60);
+   c.onclick=()=>{current=i;render();buildTimeline();}
+   timeline.appendChild(c);
+ });
 }
 
-/* FPS CHANGE LIVE */
-fpsSelect.onchange = () => {
-    if(timer) {
-        clearInterval(timer);
-        timer = setInterval(() => {
-            renderLoop();
-            currentIdx = (currentIdx + 1) % frames.length;
-        }, getDelay());
-    }
-};
+fileInput.onchange = async (e)=>{
+ const file=e.target.files[0];
+ const res=await gifFrames({url:URL.createObjectURL(file),frames:'all',outputType:'canvas'});
+ frames=res.map(f=>f.getImage());
+ current=0;
+ render();
+ buildTimeline();
+}
 
-/* EXPORT */
-exportBtn.onclick = async () => {
-    if(!frames.length) return;
+playBtn.onclick=()=>{
+ clearInterval(timer);
+ const delay=1000/fps.value;
+ timer=setInterval(()=>{
+   current=(current+1)%frames.length;
+   render();
+   buildTimeline();
+ },delay);
+}
 
-    const gif = new GIF({
-        workers:2,
-        quality:10,
-        width:canvas.width,
-        height:canvas.height
-    });
+pauseBtn.onclick=()=>clearInterval(timer);
 
-    frames.forEach(f => {
-        gif.addFrame(f, {
-            delay: getDelay(),
-            copy:true
-        });
-    });
+deleteBtn.onclick=()=>{
+ if(frames.length>1){
+   frames.splice(current,1);
+   current=0;
+   render();
+   buildTimeline();
+ }
+}
 
-    gif.on('finished', blob => {
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = "sticker.gif";
-        a.click();
-    });
+replaceBtn.onclick=()=>replaceInput.click();
 
-    gif.render();
-};
-</script>
+replaceInput.onchange=(e)=>{
+ const img=new Image();
+ img.onload=()=>{
+   frames[current]=img;
+   render();
+   buildTimeline();
+ }
+ img.src=URL.createObjectURL(e.target.files[0]);
+}
 
-</body>
+exportBtn.onclick=()=>{
+ const gif=new GIF({workers:2,quality:10,width:512,height:512});
+ const delay=1000/fps.value;
+ frames.forEach(f=>gif.addFrame(f,{delay,copy:true}));
+ gif.on('finished',b=>{
+   const a=document.createElement('a');
+   a.href=URL.createObjectURL(b);
+   a.download='pro.gif';
+   a.click();
+ });
+ gif.render();
+}
+</script></body>
 </html>
