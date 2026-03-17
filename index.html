@@ -1,174 +1,83 @@
-<!DOCTYPE html><!--
-=====================================================
- ULTRA GLOBAL LEVEL GIF EDITOR (EDUCATION VERSION)
- Approx: LONG STRUCTURED CODE (Learning Purpose)
-=====================================================
---><html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Global Pro GIF Editor</title><script src="https://unpkg.com/gif-frames/dist/gif-frames.min.js"></script><script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script><style>
-/* ================= GLOBAL UI DESIGN ================= */
-body{
- margin:0;
- background:#0b0f1a;
- color:#fff;
- font-family:Arial, sans-serif;
-}
-
-.app{
- max-width:1200px;
- margin:auto;
- padding:10px;
-}
-
-/* ================= PREVIEW ================= */
-.preview{
- aspect-ratio:1/1;
- border-radius:16px;
- display:grid;
- place-items:center;
- background-image:
- linear-gradient(45deg,#ccc 25%,transparent 25%),
- linear-gradient(-45deg,#ccc 25%,transparent 25%),
- linear-gradient(45deg,transparent 75%,#ccc 75%),
- linear-gradient(-45deg,transparent 75%,#ccc 75%);
- background-size:20px 20px;
-}
-
-canvas{
- max-width:100%;
- max-height:100%;
- touch-action:none;
-}
-
-/* ================= CONTROLS ================= */
-.controls{
- display:flex;
- flex-wrap:wrap;
- gap:8px;
- margin-top:10px;
-}
-
-.btn{
- display:flex;
- flex-direction:column;
- align-items:center;
-}
-
-button{
- padding:10px;
- border:none;
- border-radius:10px;
- font-weight:bold;
- background:#00ff88;
- color:#000;
-}
-
-span{
- font-size:11px;
- color:#aaa;
-}
-
-/* ================= TIMELINE ================= */
-.timeline{
- display:flex;
- overflow-x:auto;
- gap:6px;
- margin-top:10px;
-}
-
-.frame{
- width:60px;
- height:60px;
- border:2px solid #333;
- border-radius:8px;
-}
-
+<title>Smart Pro GIF Editor (User Friendly)</title>
+<script src="https://unpkg.com/gif-frames/dist/gif-frames.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
+<style>
+body{margin:0;background:#0b0f1a;color:#fff;font-family:sans-serif}
+.app{max-width:1000px;margin:auto;padding:10px}
+.preview{aspect-ratio:1/1;border-radius:15px;display:grid;place-items:center;background-image:linear-gradient(45deg,#ccc 25%,transparent 25%),linear-gradient(-45deg,#ccc 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#ccc 75%),linear-gradient(-45deg,transparent 75%,#ccc 75%);background-size:20px 20px}
+canvas{max-width:100%;max-height:100%;touch-action:none}
+.controls{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.btn{display:flex;flex-direction:column;align-items:center}
+button,input,select{padding:8px;border:none;border-radius:8px;font-weight:bold}
+span{font-size:11px;color:#aaa}
+.timeline{display:flex;overflow-x:auto;gap:5px;margin-top:10px}
+.frame{width:60px;height:60px;border:2px solid #333;border-radius:8px}
 .active{border-color:#00ff88}
-
-/* ================= PANEL ================= */
-.panel{
- background:#171c29;
- padding:10px;
- border-radius:12px;
- margin-top:10px;
-}
-
-.grid{
- display:grid;
- grid-template-columns:1fr 1fr;
- gap:6px;
-}
-</style></head>
-<body><div class="app"><!-- ================= PREVIEW ================= --><div class="preview">
-<canvas id="canvas" width="512" height="512"></canvas>
-</div><!-- ================= CONTROLS ================= --><div class="controls">
+.panel{background:#171c29;margin-top:10px;padding:10px;border-radius:10px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+</style>
+</head>
+<body>
+<div class="app"><div class="preview"><canvas id="canvas" width="512" height="512"></canvas></div><div class="controls">
 <div class="btn"><button id="play">▶</button><span>Play</span></div>
 <div class="btn"><button id="pause">⏸</button><span>Pause</span></div>
+<div class="btn"><button id="prev">⏮</button><span>Prev</span></div>
+<div class="btn"><button id="next">⏭</button><span>Next</span></div>
 <div class="btn"><button id="delete">🗑</button><span>Delete</span></div>
-<div class="btn"><button id="duplicate">📄</button><span>Duplicate</span></div>
 </div><input type="file" id="upload" accept="image/gif">
 <input type="range" id="seek" min="0" max="0" value="0" style="width:100%">
-<div id="info"></div><div class="timeline" id="timeline"></div><!-- ================= SIZE ================= --><div class="panel">
+<div id="info"></div><div class="timeline" id="timeline"></div><div class="panel">
 <h3>Canvas Size</h3>
 <div class="grid">
 <input type="number" id="width" value="512">
 <input type="number" id="height" value="512">
 </div>
-</div><!-- ================= BG REMOVE ================= --><div class="panel">
+</div><div class="panel">
 <h3>Background Remove</h3>
 <input type="color" id="bgColor" value="#ffffff"><span>Color</span>
 <input type="range" id="tolerance" min="0" max="100" value="40"><span>Tolerance</span>
 <input type="range" id="feather" min="0" max="20" value="5"><span>Feather</span>
-</div><!-- ================= EXPORT ================= --><div class="panel">
+</div><div class="panel">
+<h3>Text</h3>
+<input id="text" placeholder="Enter text">
+<input type="color" id="textColor" value="#ffffff">
+<input type="range" id="textSize" min="10" max="80" value="30">
+</div><div class="panel">
 <h3>Export</h3>
 <select id="fps">
 <option value="12">12</option>
 <option value="24" selected>24</option>
 <option value="30">30</option>
 </select>
-<button id="export">Export GIF</button>
+<button id="export">Export</button>
 </div></div><script>
-/* ================= VARIABLES ================= */
 const canvas=document.getElementById('canvas');
 const ctx=canvas.getContext('2d');
 const timeline=document.getElementById('timeline');
 
-let frames=[];
-let current=0;
-let timer=null;
-let posX=0,posY=0;
-let drag=false;
+let frames=[],current=0,timer=null;
+let posX=0,posY=0,drag=false;
 
-/* ================= TOUCH MOVE ================= */
-canvas.addEventListener('touchstart',e=>{
- drag=true;
-});
-
+canvas.addEventListener('touchstart',()=>drag=true);
 canvas.addEventListener('touchmove',e=>{
  if(!drag)return;
- posX+=e.touches[0].movementX||1;
- posY+=e.touches[0].movementY||1;
+ posX+=1;posY+=1;
  render();
 });
-
 canvas.addEventListener('touchend',()=>drag=false);
 
-/* ================= PROCESS IMAGE ================= */
 function process(img){
  let W=parseInt(width.value);
  let H=parseInt(height.value);
- canvas.width=W;
- canvas.height=H;
-
+ canvas.width=W;canvas.height=H;
  let temp=document.createElement('canvas');
- temp.width=W;
- temp.height=H;
+ temp.width=W;temp.height=H;
  let t=temp.getContext('2d');
-
  t.drawImage(img,posX,posY,W,H);
-
  let data=t.getImageData(0,0,W,H);
  let d=data.data;
  let col=bgColor.value;
@@ -176,20 +85,20 @@ function process(img){
  let g=parseInt(col.substr(3,2),16);
  let b=parseInt(col.substr(5,2),16);
  let tol=tolerance.value*2.55;
-
  for(let i=0;i<d.length;i+=4){
   let diff=Math.sqrt((d[i]-r)**2+(d[i+1]-g)**2+(d[i+2]-b)**2);
-  if(diff<tol){
-   let edge=diff/tol;
-   d[i+3]=edge*255*(feather.value/20);
-  }
+  if(diff<tol){d[i+3]=(diff/tol)*255*(feather.value/20)}
  }
-
  t.putImageData(data,0,0);
+ if(text.value){
+  t.fillStyle=textColor.value;
+  t.font=textSize.value+"px Arial";
+  t.textAlign="center";
+  t.fillText(text.value,W/2,H-20);
+ }
  return temp;
 }
 
-/* ================= RENDER ================= */
 function render(){
  if(!frames.length)return;
  let img=process(frames[current]);
@@ -200,13 +109,11 @@ function render(){
  seek.value=current;
 }
 
-/* ================= TIMELINE ================= */
 function build(){
  timeline.innerHTML="";
  frames.forEach((f,i)=>{
   let c=document.createElement('canvas');
-  c.width=60;
-  c.height=60;
+  c.width=60;c.height=60;
   c.className='frame'+(i===current?' active':'');
   c.getContext('2d').drawImage(f,0,0,60,60);
   c.onclick=()=>{current=i;render();build()};
@@ -214,75 +121,28 @@ function build(){
  });
 }
 
-/* ================= LOAD GIF ================= */
 upload.onchange=async e=>{
- let res=await gifFrames({
-  url:URL.createObjectURL(e.target.files[0]),
-  frames:'all',
-  outputType:'canvas'
- });
+ let res=await gifFrames({url:URL.createObjectURL(e.target.files[0]),frames:'all',outputType:'canvas'});
  frames=res.map(f=>f.getImage());
- current=0;
- render();
- build();
+ current=0;render();build();
 }
 
-/* ================= CONTROLS ================= */
-seek.oninput=()=>{
- current=parseInt(seek.value);
- render();
- build();
-}
-
-play.onclick=()=>{
- clearInterval(timer);
- timer=setInterval(()=>{
-  current=(current+1)%frames.length;
-  render();
-  build();
- },1000/fps.value);
-}
-
+seek.oninput=()=>{current=parseInt(seek.value);render();build()}
+prev.onclick=()=>{current=(current-1+frames.length)%frames.length;render();build()}
+next.onclick=()=>{current=(current+1)%frames.length;render();build()}
+play.onclick=()=>{clearInterval(timer);timer=setInterval(()=>{current=(current+1)%frames.length;render();build()},1000/fps.value)}
 pause.onclick=()=>clearInterval(timer);
+delete.onclick=()=>{if(frames.length>1){frames.splice(current,1);current=0;render();build()}}
 
-delete.onclick=()=>{
- if(frames.length>1){
-  frames.splice(current,1);
-  current=0;
-  render();
-  build();
- }
-}
-
-duplicate.onclick=()=>{
- frames.splice(current,0,frames[current]);
- render();
- build();
-}
-
-/* ================= EXPORT ================= */
 export.onclick=()=>{
- let gif=new GIF({
-  workers:2,
-  quality:10,
-  width:canvas.width,
-  height:canvas.height
- });
-
- frames.forEach(f=>{
-  gif.addFrame(process(f),{
-   delay:1000/fps.value,
-   copy:true
-  });
- });
-
+ let gif=new GIF({workers:2,quality:10,width:canvas.width,height:canvas.height});
+ frames.forEach(f=>gif.addFrame(process(f),{delay:1000/fps.value,copy:true}));
  gif.on('finished',b=>{
   let a=document.createElement('a');
   a.href=URL.createObjectURL(b);
-  a.download='global_pro.gif';
+  a.download='final.gif';
   a.click();
  });
-
  gif.render();
 }
 </script></body>
