@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GIPHY PRO STUDIO | FINAL DOWNLOAD FIX</title>
+    <title>GIPHY PRO STUDIO | FIX MODE</title>
     <script src="https://unpkg.com/gif-frames/dist/gif-frames.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
     <style>
@@ -19,114 +19,105 @@
             background: #0b0f1a; color: #fff; display: flex; flex-direction: column; align-items: center; min-height: 100vh;
         }
 
-        /* Alpha Preview Viewport */
+        /* Alpha Preview */
         .big-preview-viewport {
             width: 100%; max-width: 550px; aspect-ratio: 1/1; 
             background-color: #ffffff;
             background-image: linear-gradient(45deg, #ddd 25%, transparent 25%), linear-gradient(-45deg, #ddd 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #ddd 75%), linear-gradient(-45deg, transparent 75%, #ddd 75%);
-            background-size: 20px 20px;
-            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
-            border-radius: 32px; position: relative;
+            background-size: 20px 20px; border-radius: 32px; position: relative;
             display: flex; align-items: center; justify-content: center; overflow: hidden;
             border: 4px solid var(--primary); margin-bottom: 20px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
         }
 
-        #hint { position: absolute; color: #475569; font-weight: 900; font-size: 14px; text-transform: uppercase; z-index: 1; pointer-events: none; }
         canvas { max-width: 98%; max-height: 98%; z-index: 5; }
         input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; z-index: 10; }
 
         .app-shell { width: 100%; max-width: 550px; padding-bottom: 50px; }
-
-        /* Professional Panels */
         .panel { background: var(--surface); border-radius: 24px; padding: 20px; margin-bottom: 15px; border: 1px solid var(--border); }
         h3 { font-size: 11px; color: var(--primary); text-transform: uppercase; margin: 0 0 15px 0; letter-spacing: 2px; font-weight: 800; }
 
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px; }
         .input-box { background: #1a202c; padding: 12px; border-radius: 14px; border: 1px solid var(--border); }
         .input-box small { font-size: 9px; color: #64748b; display: block; margin-bottom: 5px; font-weight: 800; }
-        .input-box input, select { background: none; border: none; color: #fff; font-weight: 700; width: 100%; outline: none; font-size: 14px; }
+        .input-box input, select { background: none; border: none; color: #fff; font-weight: 700; width: 100%; outline: none; }
 
         .slider-row { margin-bottom: 15px; }
         .slider-head { display: flex; justify-content: space-between; font-size: 11px; color: #94a3b8; margin-bottom: 8px; font-weight: 700; }
         input[type="range"] { -webkit-appearance: none; width: 100%; height: 5px; background: #2d3748; border-radius: 10px; outline: none; }
         input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; background: var(--primary); border-radius: 50%; border: 3px solid #fff; cursor: pointer; }
 
-        /* Color Strip */
-        .color-strip { display: flex; justify-content: space-around; padding: 10px 0; }
-        .color-node { text-align: center; }
+        /* Color Nodes */
+        .color-strip { display: flex; justify-content: space-around; }
         .color-circle { width: 45px; height: 45px; border-radius: 50%; border: 3px solid #fff; position: relative; overflow: hidden; margin-bottom: 8px; }
         input[type="color"] { position: absolute; top: -10px; left: -10px; width: 70px; height: 70px; cursor: pointer; }
-        .color-node span { font-size: 9px; font-weight: 800; color: #64748b; text-transform: uppercase; }
 
-        /* NEW DOWNLOAD UI DESIGN */
+        /* NEW GLOW DOWNLOAD UI */
         #loader {
             position: fixed; inset: 0; background: #0b0f1a;
             display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 10000;
         }
-        #pctText { 
-            font-size: 110px; font-weight: 900; color: var(--primary); margin: 0; 
-            text-shadow: 0 0 40px var(--primary); /* Glowing Effect */
+        .glow-pct {
+            font-size: 120px; font-weight: 900; color: var(--primary);
+            text-shadow: 0 0 30px var(--primary), 0 0 60px var(--primary);
+            animation: pulse 1.5s infinite;
         }
-        .load-status { 
-            letter-spacing: 6px; font-weight: 800; color: #ffffff; font-size: 12px; 
-            margin-top: 20px; text-transform: uppercase; opacity: 0.8;
-        }
+        .status-text { letter-spacing: 5px; font-weight: 800; color: #fff; margin-top: 20px; font-size: 12px; }
+
+        @keyframes pulse { 0% { opacity: 0.7; } 50% { opacity: 1; } 100% { opacity: 0.7; } }
 
         .btn-export {
             width: 100%; padding: 22px; background: linear-gradient(90deg, var(--primary), #00d472);
             color: #0b0f1a; border: none; border-radius: 22px; font-size: 16px; font-weight: 900;
-            text-transform: uppercase; cursor: pointer; transition: 0.3s;
-            box-shadow: 0 15px 30px rgba(0, 255, 136, 0.3);
+            text-transform: uppercase; cursor: pointer; box-shadow: 0 15px 30px rgba(0, 255, 136, 0.3);
         }
     </style>
 </head>
 <body>
 
 <div id="loader">
-    <p id="pctText">0%</p>
-    <p class="load-status">RENDERING ALPHA GIF</p> </div>
+    <div class="glow-pct" id="pctText">0%</div>
+    <div class="status-text">RENDERING ALPHA GIF</div>
+</div>
 
 <div class="big-preview-viewport">
     <input type="file" id="gifIn" accept="image/gif">
     <canvas id="cvs"></canvas>
-    <div id="hint">DROP GIF OR TAP TO LOAD</div>
+    <div style="position: absolute; color: #475569; font-weight: 900;">TAP TO LOAD SOURCE</div>
 </div>
 
 <div class="app-shell">
     <div class="panel">
-        <h3>Master Configuration</h3>
+        <h3>Master Config</h3>
         <div class="grid-2">
-            <div class="input-box"><small>CANVAS WIDTH</small><input type="number" id="wIn" value="512"></div>
-            <div class="input-box"><small>CANVAS HEIGHT</small><input type="number" id="hIn" value="512"></div>
+            <div class="input-box"><small>WIDTH</small><input type="number" id="wIn" value="512"></div>
+            <div class="input-box"><small>HEIGHT</small><input type="number" id="hIn" value="512"></div>
         </div>
         <div class="input-box">
-            <small>FRAME RATE (FPS)</small>
+            <small>SPEED (FPS)</small>
             <select id="fpsIn">
                 <option value="83">12 FPS</option>
                 <option value="50">20 FPS</option>
                 <option value="33" selected>30 FPS</option>
-                <option value="16">60 FPS</option>
             </select>
         </div>
     </div>
 
     <div class="panel">
-        <h3>Accuracy & Edge Control</h3>
+        <h3>Accuracy & Removal</h3>
         <div class="slider-row">
             <div class="slider-head"><span>Removal Accuracy</span><span id="accVal">45%</span></div>
             <input type="range" id="accSl" min="1" max="100" value="45">
         </div>
         <div class="slider-row">
-            <div class="slider-head"><span>Edge Smoothing</span><span id="smVal">1px</span></div>
+            <div class="slider-head"><span>Smoothing</span><span id="smVal">1px</span></div>
             <input type="range" id="smSl" min="0" max="10" value="1">
         </div>
     </div>
 
     <div class="panel">
-        <h3>Stroke & Shadow FX</h3>
+        <h3>Visual Effects</h3>
         <div class="slider-row">
-            <div class="slider-head"><span>Stroke Thickness</span><span id="strWVal">12px</span></div>
+            <div class="slider-head"><span>Stroke Width</span><span id="strWVal">12px</span></div>
             <input type="range" id="strWSl" min="0" max="60" value="12">
         </div>
         <div class="slider-row">
@@ -134,21 +125,20 @@
             <input type="range" id="shdSl" min="0" max="100" value="40">
         </div>
         <div class="slider-row">
-            <div class="slider-head"><span>Object Fit</span><span id="fitVal">75%</span></div>
+            <div class="slider-head"><span>Fit Area</span><span id="fitVal">75%</span></div>
             <input type="range" id="fitSl" min="10" max="100" value="75">
         </div>
     </div>
 
     <div class="panel">
-        <h3>A-Z Color Nodes</h3>
         <div class="color-strip">
-            <div class="color-node"><div class="color-circle"><input type="color" id="cBg" value="#ffffff"></div><span>BG Clean</span></div>
-            <div class="color-node"><div class="color-circle"><input type="color" id="cStr" value="#ffffff"></div><span>Stroke</span></div>
-            <div class="color-node"><div class="color-circle"><input type="color" id="cGl" value="#6366f1"></div><span>Glow FX</span></div>
+            <div class="color-circle"><input type="color" id="cBg" value="#ffffff"></div>
+            <div class="color-circle"><input type="color" id="cStr" value="#ffffff"></div>
+            <div class="color-circle"><input type="color" id="cGl" value="#6366f1"></div>
         </div>
     </div>
 
-    <button class="btn-export" id="btnExport">Generate Giphy Sticker</button>
+    <button class="btn-export" id="btnExport">Generate & Download</button>
 </div>
 
 <script>
@@ -162,20 +152,13 @@
 
     gifIn.onchange = async (e) => {
         const file = e.target.files[0]; if(!file) return;
-        document.getElementById('hint').style.display = 'none';
         const res = await gifFrames({ url: URL.createObjectURL(file), frames: 'all', outputType: 'canvas' });
         frames = res.map(f => f.getImage());
         ow = frames[0].width; oh = frames[0].height;
-        updateCvs();
-        start();
-    };
-
-    function updateCvs() { cvs.width = wIn.value; cvs.height = hIn.value; }
-
-    function start() {
+        cvs.width = wIn.value; cvs.height = hIn.value;
         if(timer) clearInterval(timer);
         timer = setInterval(() => { draw(); cur = (cur+1)%frames.length; }, parseInt(fpsIn.value));
-    }
+    };
 
     function process(img, isFinal = false) {
         const W = parseInt(wIn.value), H = parseInt(hIn.value);
@@ -196,51 +179,46 @@
         const o = document.createElement('canvas'); o.width = W; o.height = H;
         const ox = o.getContext('2d');
         if(smSl.value > 0) ox.filter = `blur(${smSl.value/5}px)`;
-        if(shdSl.value > 0) { ox.shadowColor = 'rgba(0,0,0,0.5)'; ox.shadowBlur = 10; ox.shadowOffsetY = shdSl.value/8; }
         const sW = parseInt(strWSl.value);
         if(sW > 0) {
             const sx = document.createElement('canvas').getContext('2d'); sx.canvas.width = W; sx.canvas.height = H;
             sx.fillStyle = cStr.value;
-            for(let x=-sW; x<=sW; x+=3) for(let y=-sW; y<=sW; y+=3) if(x*x+y*y <= sW*sW) sx.drawImage(t, x, y);
+            for(let x=-sW; x<=sW; x+=4) for(let y=-sW; y<=sW; y+=4) sx.drawImage(t, x, y);
             sx.globalCompositeOperation = 'source-in'; sx.fillRect(0,0,W,H);
-            sx.globalCompositeOperation = 'source-over'; sx.drawImage(t, 0, 0);
             ox.shadowColor = cGl.value; ox.shadowBlur = 30; ox.drawImage(sx.canvas, 0, 0);
+            ox.shadowBlur = 0; ox.drawImage(t, 0, 0);
         } else { ox.drawImage(t, 0, 0); }
         return o;
     }
 
     function draw() { if(frames.length) { ctx.clearRect(0,0,cvs.width,cvs.height); ctx.drawImage(process(frames[cur]), 0, 0); } }
 
-    /* DOWNLOAD FIX ENGINE: Increased stability for mobile browsers */
+    /* CRITICAL FIX: Memory Optimized Download */
     btnExport.onclick = () => {
         if(!frames.length) return;
         loader.style.display = 'flex';
-        // Improved worker configuration to prevent freezing
         const gif = new GIF({ 
-            workers: 2, 
-            quality: 10, 
+            workers: 1, // Reduced to 1 for mobile stability
+            quality: 20, // Lower quality = Faster & No Stop
             width: parseInt(wIn.value), 
             height: parseInt(hIn.value),
             workerScript: 'https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.worker.js'
         });
         frames.forEach(f => gif.addFrame(process(f, true), {delay: parseInt(fpsIn.value), copy: true}));
-        gif.on('progress', p => {
-            pctText.innerText = Math.round(p*100)+'%';
-        });
+        gif.on('progress', p => { pctText.innerText = Math.round(p*100)+'%'; });
         gif.on('finished', b => {
-            const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `giphy_pro_${Date.now()}.gif`; a.click();
-            setTimeout(() => { loader.style.display = 'none'; }, 500);
+            const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `pro_gif_${Date.now()}.gif`; a.click();
+            setTimeout(() => { loader.style.display = 'none'; }, 1000);
         });
         gif.render();
     };
 
     [wIn, hIn, accSl, smSl, strWSl, shdSl, fitSl].forEach(el => el.oninput = () => {
-        if(el.id === 'wIn' || el.id === 'hIn') updateCvs();
+        if(el.id.includes('In')) cvs.width = wIn.value, cvs.height = hIn.value;
         const vEl = document.getElementById(el.id.replace('Sl','Val'));
-        if(vEl) vEl.innerText = el.value + (el.id.includes('Sl') && !el.id.includes('acc') && !el.id.includes('fit') && !el.id.includes('shd') ? 'px' : '%');
+        if(vEl) vEl.innerText = el.value + (el.id.includes('Sl') && !el.id.includes('acc') ? 'px' : '%');
         draw();
     });
-    [cBg, cStr, cGl, fpsIn].forEach(el => el.onchange = () => { if(el.id==='fpsIn') start(); draw(); });
 </script>
 </body>
 </html>
