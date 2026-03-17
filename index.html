@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GIPHY PRO STUDIO | CENTERED</title>
+    <title>GIPHY PRO STUDIO | FINAL FIX</title>
     <script src="https://unpkg.com/gif-frames/dist/gif-frames.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
     <style>
@@ -11,22 +11,18 @@
             --primary: #00ff88;
             --secondary: #6366f1;
             --dark-bg: #0f172a;
-            --surface: rgba(30, 41, 59, 0.7);
+            --surface: rgba(30, 41, 59, 0.85);
             --border: rgba(255, 255, 255, 0.1);
         }
 
-        /* Animated Background */
+        /* Pro Background Animation */
         body {
             margin: 0; padding: 20px;
             font-family: 'Inter', system-ui, sans-serif;
             background: linear-gradient(-45deg, #0f172a, #1e293b, #0f172a, #1e1b4b);
             background-size: 400% 400%;
             animation: gradientBG 15s ease infinite;
-            color: #fff;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
+            color: #fff; display: flex; flex-direction: column; align-items: center; min-height: 100vh;
         }
 
         @keyframes gradientBG {
@@ -35,22 +31,20 @@
             100% { background-position: 0% 50%; }
         }
 
-        /* Professional Header */
-        .studio-header { text-align: center; margin-bottom: 30px; }
+        /* Centered Header */
+        .studio-header { text-align: center; margin-bottom: 25px; }
         .studio-header h1 {
-            font-size: 28px; font-weight: 900;
+            font-size: 32px; font-weight: 900; letter-spacing: -1px;
             background: linear-gradient(to right, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
             margin: 0; text-transform: uppercase;
         }
 
         .app-shell {
             width: 100%; max-width: 500px;
-            background: var(--surface);
-            backdrop-filter: blur(20px);
-            border-radius: 32px; padding: 25px;
-            border: 1px solid var(--border);
+            background: var(--surface); backdrop-filter: blur(25px);
+            border-radius: 32px; padding: 25px; border: 1px solid var(--border);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
 
         /* Fixed Centered Viewport */
@@ -63,64 +57,60 @@
                 linear-gradient(45deg, transparent 75%, #e5e7eb 75%), 
                 linear-gradient(-45deg, transparent 75%, #e5e7eb 75%);
             background-size: 20px 20px;
-            border-radius: 24px; position: relative;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center; /* Horizontally centered */
-            text-align: center;      /* Vertically centered for multi-line text */
-            border: 2px solid rgba(255,255,255,0.05);
-            margin-bottom: 20px;
+            border-radius: 24px; position: relative; overflow: hidden;
+            display: flex; align-items: center; justify-content: center;
+            border: 2px solid rgba(255,255,255,0.05); margin-bottom: 20px;
         }
 
         #fileInput { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 10; }
         
-        /* Centering the Text Overlay */
+        /* Centered Hint Text Fix */
         #hint {
-            position: absolute;
-            width: 80%; /* Limits width for better wrapping */
-            font-weight: 800;
-            color: #64748b;
-            font-size: 14px;
-            letter-spacing: 1px;
-            pointer-events: none;
-            z-index: 2;
-            line-height: 1.5;
+            position: absolute; z-index: 2; pointer-events: none;
+            color: #64748b; font-weight: 800; font-size: 14px;
+            text-align: center; line-height: 1.4; letter-spacing: 1px;
         }
 
-        canvas { max-width: 100%; max-height: 100%; z-index: 5; }
+        canvas { max-width: 95%; max-height: 95%; z-index: 5; }
 
         .status-strip {
             display: flex; justify-content: space-between;
-            background: rgba(0,0,0,0.3); padding: 12px 18px;
+            background: rgba(0,0,0,0.4); padding: 12px 20px;
             border-radius: 14px; margin-bottom: 20px;
             font-size: 11px; font-weight: 800; color: var(--primary);
         }
 
+        /* Professional Control Panels */
         .control-panel {
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 20px; padding: 20px;
-            margin-bottom: 15px; border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.03); border-radius: 20px;
+            padding: 20px; margin-bottom: 15px; border: 1px solid var(--border);
         }
+
+        h3 { font-size: 10px; color: var(--primary); text-transform: uppercase; margin: 0 0 15px 0; letter-spacing: 1px; }
 
         .res-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px; }
         .res-box { background: rgba(0,0,0,0.2); padding: 10px; border-radius: 12px; border: 1px solid var(--border); }
         .res-box input { background: none; border: none; color: #fff; font-weight: 700; width: 100%; outline: none; }
 
-        input[type="range"] { -webkit-appearance: none; width: 100%; height: 4px; background: #334155; border-radius: 5px; }
+        label { font-size: 11px; color: #94a3b8; display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: 600; }
+        input[type="range"] { -webkit-appearance: none; width: 100%; height: 4px; background: #334155; border-radius: 5px; outline: none; }
         input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; background: var(--primary); border-radius: 50%; cursor: pointer; border: 3px solid #fff; }
 
+        /* Color Nodes */
         .color-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 20px; }
-        .color-circle { width: 44px; height: 44px; border-radius: 50%; border: 3px solid #fff; overflow: hidden; position: relative; }
-        input[type="color"] { position: absolute; top: -10px; left: -10px; width: 70px; height: 70px; cursor: pointer; }
+        .color-node { display: flex; flex-direction: column; align-items: center; }
+        .color-circle { width: 44px; height: 44px; border-radius: 50%; border: 3px solid #fff; overflow: hidden; position: relative; box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
+        input[type="color"] { position: absolute; top: -10px; left: -10px; width: 70px; height: 70px; cursor: pointer; border: none; }
+        .color-node span { font-size: 9px; color: #64748b; font-weight: 800; margin-top: 8px; text-transform: uppercase; }
 
         .btn-download {
             width: 100%; padding: 20px;
             background: linear-gradient(to right, var(--primary), #00d472);
             color: #0f172a; border: none; border-radius: 20px;
             font-size: 15px; font-weight: 800; text-transform: uppercase;
-            cursor: pointer; transition: 0.3s;
+            cursor: pointer; transition: 0.3s; margin-top: 10px;
         }
+        .btn-download:hover { transform: translateY(-2px); filter: brightness(1.1); }
     </style>
 </head>
 <body>
@@ -138,31 +128,39 @@
     </div>
 
     <div class="status-strip">
-        <span>RESOLUTION: <span id="resInfo">0x0</span></span>
+        <span>SIZE: <span id="resInfo">0x0</span></span>
         <span>FRAMES: <span id="frameInfo">0</span></span>
     </div>
 
     <div class="control-panel">
+        <h3>Master Configuration</h3>
         <div class="res-grid">
             <div class="res-box"><small style="color:#64748b; font-size:9px;">WIDTH</small><input type="number" id="wIn" value="512"></div>
             <div class="res-box"><small style="color:#64748b; font-size:9px;">HEIGHT</small><input type="number" id="hIn" value="512"></div>
         </div>
-        <label style="font-size: 11px; color: #94a3b8;">Animation Speed <span id="sVal">30ms</span></label>
+        <label>Animation Speed <span id="sVal">30ms</span></label>
         <input type="range" id="sSl" min="10" max="250" value="30">
     </div>
 
     <div class="control-panel">
-        <label style="font-size: 11px; color: #94a3b8;">Alpha Accuracy <span id="accVal">45%</span></label>
-        <input type="range" id="accSl" min="0" max="100" value="45">
+        <h3>Accuracy & FX</h3>
+        <label>Object Fit (Safe Area) <span id="fitVal">70%</span></label>
+        <input type="range" id="fitSl" min="20" max="95" value="70">
         
-        <label style="font-size: 11px; color: #94a3b8; margin-top:10px; display:block;">Shadow Depth <span id="shdVal">40%</span></label>
+        <label style="margin-top:15px;">Alpha Accuracy <span id="accVal">45%</span></label>
+        <input type="range" id="accSl" min="0" max="100" value="45">
+
+        <label style="margin-top:15px;">Shadow Depth <span id="shdVal">40%</span></label>
         <input type="range" id="shdSl" min="0" max="100" value="40">
+
+        <label style="margin-top:15px;">Stroke Width <span id="strVal">12px</span></label>
+        <input type="range" id="strSl" min="0" max="50" value="12">
     </div>
 
     <div class="color-grid">
-        <div style="text-align:center;"><div class="color-circle"><input type="color" id="cBg" value="#ffffff"></div><span style="font-size:9px; color:#64748b;">BG</span></div>
-        <div style="text-align:center;"><div class="color-circle"><input type="color" id="cStr" value="#ffffff"></div><span style="font-size:9px; color:#64748b;">STROKE</span></div>
-        <div style="text-align:center;"><div class="color-circle"><input type="color" id="cGlw" value="#6366f1"></div><span style="font-size:9px; color:#64748b;">GLOW</span></div>
+        <div class="color-node"><div class="color-circle"><input type="color" id="cBg" value="#ffffff"></div><span>BG</span></div>
+        <div class="color-node"><div class="color-circle"><input type="color" id="cStr" value="#ffffff"></div><span>STROKE</span></div>
+        <div class="color-node"><div class="color-circle"><input type="color" id="cGlw" value="#6366f1"></div><span>GLOW</span></div>
     </div>
 
     <button class="btn-download" id="btnExport">Generate Master Sticker</button>
@@ -171,7 +169,7 @@
 <script>
     const up = document.getElementById('fileInput'), cvs = document.getElementById('mainCanvas'), ctx = cvs.getContext('2d');
     const wIn = document.getElementById('wIn'), hIn = document.getElementById('hIn'), sSl = document.getElementById('sSl');
-    const accSl = document.getElementById('accSl'), shdSl = document.getElementById('shdSl');
+    const fitSl = document.getElementById('fitSl'), accSl = document.getElementById('accSl'), strSl = document.getElementById('strSl'), shdSl = document.getElementById('shdSl');
     const cBg = document.getElementById('cBg'), cStr = document.getElementById('cStr'), cGlw = document.getElementById('cGlw');
     const expBtn = document.getElementById('btnExport'), hint = document.getElementById('hint');
 
@@ -194,9 +192,10 @@
         const W = parseInt(wIn.value), H = parseInt(hIn.value);
         const tC = document.createElement('canvas'); tC.width = W; tC.height = H;
         const tx = tC.getContext('2d');
+        const scale = fitSl.value / 100;
         const ratio = ow / oh;
-        let dw = (ratio > W/H) ? W*0.7 : (H*0.7)*ratio;
-        let dh = (ratio > W/H) ? (W*0.7)/ratio : H*0.7;
+        let dw = (ratio > W/H) ? W*scale : (H*scale)*ratio;
+        let dh = (ratio > W/H) ? (W*scale)/ratio : H*scale;
         tx.drawImage(img, (W-dw)/2, (H-dh)/2, dw, dh);
 
         const id = tx.getImageData(0,0,W,H), d = id.data;
@@ -211,17 +210,22 @@
 
         const out = document.createElement('canvas'); out.width = W; out.height = H;
         const ox = out.getContext('2d');
-        if(shdSl.value > 0) { ox.shadowColor = `rgba(0,0,0,${shdSl.value/130})`; ox.shadowBlur = 20; ox.shadowOffsetY = 10; }
         
-        // Stroke Logic
-        const stroke = 12;
-        const sx = document.createElement('canvas').getContext('2d'); sx.canvas.width = W; sx.canvas.height = H;
-        sx.fillStyle = cStr.value;
-        for(let x=-stroke; x<=stroke; x+=2) for(let y=-stroke; y<=stroke; y+=2) if(x*x+y*y <= stroke*stroke) sx.drawImage(tC, x, y);
-        sx.globalCompositeOperation = 'source-in'; sx.fillRect(0,0,W,H);
-        sx.globalCompositeOperation = 'source-over'; sx.drawImage(tC, 0, 0);
-        ox.shadowColor = cGlw.value; ox.shadowBlur = 30; ox.drawImage(sx.canvas, 0, 0);
+        /* Shadow Depth Fix */
+        if(shdSl.value > 0) { 
+            ox.shadowColor = `rgba(0,0,0,${shdSl.value/130})`; 
+            ox.shadowBlur = 20; ox.shadowOffsetY = 10; 
+        }
         
+        const stroke = parseInt(strSl.value);
+        if(stroke > 0) {
+            const sx = document.createElement('canvas').getContext('2d'); sx.canvas.width = W; sx.canvas.height = H;
+            sx.fillStyle = cStr.value;
+            for(let x=-stroke; x<=stroke; x+=2) for(let y=-stroke; y<=stroke; y+=2) if(x*x+y*y <= stroke*stroke) sx.drawImage(tC, x, y);
+            sx.globalCompositeOperation = 'source-in'; sx.fillRect(0,0,W,H);
+            sx.globalCompositeOperation = 'source-over'; sx.drawImage(tC, 0, 0);
+            ox.shadowColor = cGlw.value; ox.shadowBlur = 30; ox.drawImage(sx.canvas, 0, 0);
+        } else { ox.drawImage(tC, 0, 0); }
         return out;
     }
 
@@ -235,7 +239,9 @@
         gif.render();
     };
 
-    [wIn, hIn, sSl, accSl, shdSl, cBg, cStr, cGlw].forEach(el => el.oninput = () => {
+    [wIn, hIn, sSl, fitSl, accSl, strSl, shdSl, cBg, cStr, cGlw].forEach(el => el.oninput = () => {
+        const lbl = document.getElementById(el.id.replace('Sl','Val'));
+        if(lbl) lbl.innerText = el.value + (el.id==='strSl'?'px':(el.id==='sSl'?'ms':'%'));
         cvs.width = wIn.value; cvs.height = hIn.value;
         render();
     });
