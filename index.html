@@ -2,46 +2,53 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ultimate Pro GIF Editor</title><script src="https://unpkg.com/gif-frames/dist/gif-frames.min.js"></script><script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script><style>
-body{margin:0;font-family:sans-serif;background:#0b0f1a;color:#fff}
-.app{max-width:900px;margin:auto;padding:10px}
+<title>GOD+ GIF Editor PRO MAX</title>
+<script src="https://unpkg.com/gif-frames/dist/gif-frames.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
+<style>
+body{margin:0;background:#0b0f1a;color:#fff;font-family:sans-serif}
+.app{max-width:1100px;margin:auto;padding:10px}
 .preview{aspect-ratio:1/1;background:#fff;border-radius:15px;display:grid;place-items:center}
 canvas{max-width:100%;max-height:100%}
-.controls{display:flex;gap:8px;margin-top:10px}
-button,input,select{padding:10px;border:none;border-radius:10px;font-weight:bold}
+.controls{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.btn{display:flex;flex-direction:column;align-items:center}
+button,input,select{padding:8px;border:none;border-radius:8px;font-weight:bold}
+span{font-size:10px;color:#94a3b8}
 .timeline{display:flex;overflow-x:auto;gap:5px;margin-top:10px}
 .frame{width:60px;height:60px;border:2px solid #333;border-radius:8px}
 .active{border-color:#00ff88}
-.panel{margin-top:10px;background:#171c29;padding:10px;border-radius:12px}
-</style></head>
-<body><div class="app"><div class="preview">
-<canvas id="canvas" width="512" height="512"></canvas>
-</div><div class="controls">
-<button id="prev">⏮</button>
-<button id="play">▶️</button>
-<button id="pause">⏸</button>
-<button id="next">⏭</button>
-<button id="delete">🗑</button>
+.panel{background:#171c29;margin-top:10px;padding:10px;border-radius:10px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+</style>
+</head>
+<body>
+<div class="app"><div class="preview"><canvas id="canvas" width="512" height="512"></canvas></div><div class="controls">
+<div class="btn"><button id="play">▶️</button><span>Play</span></div>
+<div class="btn"><button id="pause">⏸</button><span>Pause</span></div>
+<div class="btn"><button id="delete">🗑</button><span>Delete Frame</span></div>
+<div class="btn"><button id="duplicate">📄</button><span>Duplicate</span></div>
 </div><input type="range" id="seek" min="0" max="0" value="0" style="width:100%">
-<div id="label" style="text-align:center"></div><input type="file" id="fileInput" accept="image/gif"><div class="timeline" id="timeline"></div><div class="panel">
-<h3>Transform</h3>
-<input type="range" id="scale" min="50" max="150" value="100">
-<input type="range" id="rotate" min="-180" max="180" value="0">
+<div id="info"></div><div class="timeline" id="timeline"></div><div class="panel">
+<h3>Canvas Size</h3>
+<div class="grid">
+<input type="number" id="width" placeholder="Width" value="512">
+<input type="number" id="height" placeholder="Height" value="512">
+</div>
 </div><div class="panel">
-<h3>Effects</h3>
-<input type="range" id="brightness" min="50" max="150" value="100">
-<input type="range" id="blur" min="0" max="10" value="0">
+<h3>Crop</h3>
+<input type="range" id="crop" min="0" max="100" value="0">
+<span>Crop Intensity</span>
 </div><div class="panel">
 <h3>Background Remove</h3>
 <input type="color" id="bgColor" value="#ffffff">
+<span>Pick Color</span>
 <input type="range" id="tolerance" min="0" max="100" value="40">
-<input type="range" id="feather" min="0" max="20" value="4">
+<span>Tolerance</span>
+<input type="range" id="feather" min="0" max="20" value="5">
+<span>Feather</span>
 </div><div class="panel">
-<h3>Stroke & Glow</h3>
-<input type="color" id="strokeColor" value="#ffffff">
-<input type="range" id="strokeWidth" min="0" max="20" value="8">
-<input type="color" id="glowColor" value="#00ff88">
-<input type="range" id="glow" min="0" max="40" value="15">
+<h3>GIF Info</h3>
+<div id="gifInfo">No file</div>
 </div><div class="panel">
 <h3>Export</h3>
 <select id="fps">
@@ -55,21 +62,22 @@ const canvas=document.getElementById('canvas');
 const ctx=canvas.getContext('2d');
 const timeline=document.getElementById('timeline');
 
-let frames=[],current=0,timer=null;
-
-function delay(){return 1000/fps.value}
+let frames=[],current=0,timer=null,origW=0,origH=0;
 
 function process(img){
- const W=512,H=512;
- const c=document.createElement('canvas');
- c.width=W;c.height=H;
- const x=c.getContext('2d');
+ let W=parseInt(width.value);
+ let H=parseInt(height.value);
+ canvas.width=W;canvas.height=H;
 
- x.filter=`brightness(${brightness.value}%) blur(${blur.value}px)`;
- x.translate(W/2,H/2);
- x.rotate(rotate.value*Math.PI/180);
- x.scale(scale.value/100,scale.value/100);
- x.drawImage(img,-W/2,-H/2,W,H);
+ let c=document.createElement('canvas');
+ c.width=W;c.height=H;
+ let x=c.getContext('2d');
+
+ let cropVal=crop.value/100;
+ let cropW=img.width*(1-cropVal);
+ let cropH=img.height*(1-cropVal);
+
+ x.drawImage(img,0,0,cropW,cropH,0,0,W,H);
 
  let data=x.getImageData(0,0,W,H);
  let d=data.data;
@@ -86,26 +94,17 @@ function process(img){
    d[i+3]=edge*255*(feather.value/20);
   }
  }
+
  x.putImageData(data,0,0);
-
- const out=document.createElement('canvas');
- out.width=W;out.height=H;
- const o=out.getContext('2d');
-
- if(strokeWidth.value>0){
-  o.shadowColor=glowColor.value;
-  o.shadowBlur=glow.value;
- }
-
- o.drawImage(c,0,0);
- return out;
+ return c;
 }
 
 function render(){
  if(!frames.length)return;
- ctx.clearRect(0,0,512,512);
- ctx.drawImage(process(frames[current]),0,0);
- label.innerText=`Frame ${current+1}/${frames.length}`;
+ let img=process(frames[current]);
+ ctx.clearRect(0,0,canvas.width,canvas.height);
+ ctx.drawImage(img,0,0);
+ info.innerText=`Frame ${current+1}/${frames.length}`;
  seek.max=frames.length-1;
  seek.value=current;
 }
@@ -122,35 +121,24 @@ function build(){
  });
 }
 
-fileInput.onchange=async e=>{
- let res=await gifFrames({url:URL.createObjectURL(e.target.files[0]),frames:'all',outputType:'canvas'});
- frames=res.map(f=>f.getImage());
- current=0;
- render();build();
-}
+// NOTE: Upload removed as requested. You must preload frames manually if needed.
 
-prev.onclick=()=>{current=(current-1+frames.length)%frames.length;render();build()}
-next.onclick=()=>{current=(current+1)%frames.length;render();build()}
 seek.oninput=()=>{current=parseInt(seek.value);render();build()}
 
-play.onclick=()=>{
- clearInterval(timer);
- timer=setInterval(()=>{current=(current+1)%frames.length;render();build()},delay());
-}
-
+play.onclick=()=>{clearInterval(timer);timer=setInterval(()=>{current=(current+1)%frames.length;render();build()},1000/fps.value)}
 pause.onclick=()=>clearInterval(timer);
 
-delete.onclick=()=>{
- if(frames.length>1){frames.splice(current,1);current=0;render();build()}
-}
+delete.onclick=()=>{if(frames.length>1){frames.splice(current,1);current=0;render();build()}}
+
+duplicate.onclick=()=>{frames.splice(current,0,frames[current]);render();build()}
 
 export.onclick=()=>{
- let gif=new GIF({workers:2,quality:10,width:512,height:512});
- frames.forEach(f=>gif.addFrame(process(f),{delay:delay(),copy:true}));
+ let gif=new GIF({workers:2,quality:10,width:canvas.width,height:canvas.height});
+ frames.forEach(f=>gif.addFrame(process(f),{delay:1000/fps.value,copy:true}));
  gif.on('finished',b=>{
   let a=document.createElement('a');
   a.href=URL.createObjectURL(b);
-  a.download='ultimate.gif';
+  a.download='godplus.gif';
   a.click();
  });
  gif.render();
