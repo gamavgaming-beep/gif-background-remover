@@ -3,176 +3,207 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Giphy Pro Studio</title>
+<title>Giphy Pro Studio | A to Z Ultimate</title>
 
 <script src="https://unpkg.com/gif-frames/dist/gif-frames.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
 
 <style>
 :root {
-    --accent:#00ff88;
-    --bg:#0b0f1a;
-    --surface:#171c29;
-    --border:rgba(255,255,255,0.1);
+    --accent: #00ff88;
+    --accent-glow: rgba(0, 255, 136, 0.4);
+    --bg: #0b0f1a;
+    --surface: #171c29;
+    --text-main: #ffffff;
+    --text-dim: #94a3b8;
+    --border: rgba(255, 255, 255, 0.1);
 }
 
-body{
-    background:var(--bg);
-    color:#fff;
-    font-family:sans-serif;
-    display:flex;
-    justify-content:center;
+body {
+    background: var(--bg);
+    color: var(--text-main);
+    font-family: sans-serif;
+    display: flex;
+    justify-content: center;
+    padding: 15px;
 }
 
-.app{
-    max-width:520px;
-    width:100%;
+.app-container {
+    width: 100%;
+    max-width: 520px;
 }
 
-.preview{
-    aspect-ratio:1/1;
-    border:3px solid var(--accent);
-    border-radius:20px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
+.preview-wrapper {
+    aspect-ratio: 1/1;
+    border-radius: 24px;
+    border: 3px solid var(--accent);
+    display: grid;
+    place-items: center;
 
-    background:#fff;
+    background: #fff;
     background-image:
     linear-gradient(45deg,#ddd 25%,transparent 25%),
     linear-gradient(-45deg,#ddd 25%,transparent 25%),
     linear-gradient(45deg,transparent 75%,#ddd 75%),
     linear-gradient(-45deg,transparent 75%,#ddd 75%);
-    background-size:20px 20px;
+    background-size: 20px 20px;
 }
 
-canvas{max-width:100%}
+canvas { max-width: 95%; }
 
-.fps-wrap{
-    display:flex;
-    flex-wrap:wrap;
-    gap:8px;
-    margin-top:10px;
+.section-title {
+    color: var(--accent);
+    margin-top: 20px;
+    font-weight: bold;
 }
 
-.fps-btn{
-    padding:8px 10px;
-    border-radius:10px;
-    border:1px solid var(--border);
-    background:#1a202c;
-    color:#fff;
-    cursor:pointer;
-    font-size:12px;
+.control-panel {
+    background: #111;
+    padding: 15px;
+    border-radius: 15px;
+    margin-top: 10px;
 }
 
-.fps-btn.active{
-    background:var(--accent);
-    color:#000;
+.input-group {
+    margin-bottom: 15px;
 }
 
-button.main{
-    width:100%;
-    margin-top:20px;
-    padding:15px;
-    font-weight:bold;
-    background:var(--accent);
-    border:none;
-    border-radius:15px;
+label {
+    font-size: 12px;
+    display: flex;
+    justify-content: space-between;
+}
+
+input[type="range"] {
+    width: 100%;
+}
+
+.fps-dropdown {
+    width: 100%;
+    padding: 12px;
+    border-radius: 12px;
+    background: #1a202c;
+    color: #fff;
+    border: 1px solid var(--border);
+    font-weight: bold;
+}
+
+.btn-generate {
+    width: 100%;
+    padding: 18px;
+    background: var(--accent);
+    border: none;
+    border-radius: 15px;
+    font-weight: bold;
 }
 </style>
 </head>
 
 <body>
 
-<div class="app">
+<div class="app-container">
 
-<div class="preview">
+<div class="preview-wrapper">
 <input type="file" id="fileInput" accept="image/gif">
-<canvas id="canvas"></canvas>
+<canvas id="mainCanvas"></canvas>
 </div>
 
-<p>FPS: <span id="fpsVal">30</span></p>
+<div class="section-title">Resolution & Speed</div>
+<div class="control-panel">
 
-<div class="fps-wrap" id="fpsWrap"></div>
+<div class="input-group">
+<label>Frame Rate <span id="fpsLabel">30 FPS</span></label>
 
-<button class="main" id="exportBtn">Generate</button>
+<select id="fpsSelect" class="fps-dropdown">
+<option value="12">12 fps</option>
+<option value="15">15 fps</option>
+<option value="18">18 fps</option>
+<option value="20">20 fps</option>
+<option value="24">24 fps</option>
+<option value="25">25 fps</option>
+<option value="30" selected>30 fps</option>
+<option value="48">48 fps</option>
+<option value="50">50 fps</option>
+<option value="60">60 fps</option>
+</select>
+</div>
+
+</div>
+
+<button class="btn-generate" id="btnExport">Generate Sticker</button>
 
 </div>
 
 <script>
 
-const fpsList = [12,15,18,20,24,25,30,48,50,60];
+const fileIn = document.getElementById('fileInput');
+const canvas = document.getElementById('mainCanvas');
+const ctx = canvas.getContext('2d');
+const fpsSelect = document.getElementById('fpsSelect');
 
-const fpsWrap = document.getElementById("fpsWrap");
-const fpsVal = document.getElementById("fpsVal");
+let frames = [], timer = null, currentIdx = 0;
 
-let delay = 33;
+function getDelay() {
+    return Math.round(1000 / fpsSelect.value);
+}
 
-// create buttons
-fpsList.forEach(fps=>{
-    const btn = document.createElement("button");
-    btn.className="fps-btn";
-    btn.innerText=fps+" FPS";
+fpsSelect.onchange = () => {
+    document.getElementById('fpsLabel').innerText = fpsSelect.value + " FPS";
 
-    btn.onclick=()=>{
-        document.querySelectorAll(".fps-btn").forEach(b=>b.classList.remove("active"));
-        btn.classList.add("active");
-
-        delay = Math.round(1000/fps);
-        fpsVal.innerText=fps;
-
-        if(timer){
-            clearInterval(timer);
-            timer=setInterval(loop,delay);
-        }
+    if(timer){
+        clearInterval(timer);
+        timer = setInterval(loop, getDelay());
     }
+};
 
-    fpsWrap.appendChild(btn);
-});
+fileIn.onchange = async (e) => {
+    const file = e.target.files[0];
+    if(!file) return;
 
-// default active
-fpsWrap.children[6].classList.add("active"); // 30 FPS
+    const res = await gifFrames({
+        url: URL.createObjectURL(file),
+        frames: 'all',
+        outputType: 'canvas'
+    });
 
-// GIF logic
-const fileInput=document.getElementById("fileInput");
-const canvas=document.getElementById("canvas");
-const ctx=canvas.getContext("2d");
+    frames = res.map(f => f.getImage());
 
-let frames=[],timer,i=0;
-
-fileInput.onchange=async(e)=>{
-    const file=e.target.files[0];
-    const data=await gifFrames({url:URL.createObjectURL(file),frames:'all',outputType:'canvas'});
-    frames=data.map(f=>f.getImage());
-
-    canvas.width=500;
-    canvas.height=500;
+    canvas.width = 500;
+    canvas.height = 500;
 
     if(timer) clearInterval(timer);
-    timer=setInterval(loop,delay);
+    timer = setInterval(loop, getDelay());
 };
 
 function loop(){
     if(!frames.length) return;
-    ctx.clearRect(0,0,500,500);
-    ctx.drawImage(frames[i],0,0,500,500);
-    i=(i+1)%frames.length;
+
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.drawImage(frames[currentIdx],0,0,500,500);
+
+    currentIdx = (currentIdx + 1) % frames.length;
 }
 
-// EXPORT
-document.getElementById("exportBtn").onclick=async()=>{
+document.getElementById('btnExport').onclick = () => {
     if(!frames.length) return;
 
-    const gif=new GIF({workers:2,quality:10,width:500,height:500});
-
-    frames.forEach(f=>{
-        gif.addFrame(f,{delay:delay});
+    const gif = new GIF({
+        workers: 2,
+        quality: 10,
+        width: canvas.width,
+        height: canvas.height
     });
 
-    gif.on("finished",b=>{
-        const a=document.createElement("a");
-        a.href=URL.createObjectURL(b);
-        a.download="sticker.gif";
+    frames.forEach(f => {
+        gif.addFrame(f, {
+            delay: getDelay()
+        });
+    });
+
+    gif.on('finished', (blob) => {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = "sticker.gif";
         a.click();
     });
 
