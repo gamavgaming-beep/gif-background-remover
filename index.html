@@ -1,127 +1,193 @@
-<!-- FPS DROPDOWN VERSION -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GIF Pro Editor FPS Dropdown</title>
+<title>Giphy Pro Studio | A to Z Ultimate</title>
 
 <script src="https://unpkg.com/gif-frames/dist/gif-frames.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
 
 <style>
-body { background:#0b0f1a; color:#fff; font-family:sans-serif; text-align:center; }
-canvas { max-width:90%; margin-top:10px; }
-select, input { padding:8px; margin:5px; }
-button { padding:12px; background:#00ff88; border:none; font-weight:bold; }
+:root {
+    --accent: #00ff88;
+    --bg: #0b0f1a;
+    --surface: #171c29;
+    --text-main: #fff;
+}
+
+body {
+    background: var(--bg);
+    color: var(--text-main);
+    display:flex;
+    justify-content:center;
+    padding:15px;
+}
+
+.app-container {
+    width:100%;
+    max-width:520px;
+    background:var(--surface);
+    padding:20px;
+    border-radius:25px;
+}
+
+/* WHITE BACKGROUND PREVIEW */
+.preview-wrapper {
+    aspect-ratio:1/1;
+    background:#ffffff; /* FULL WHITE */
+    border-radius:20px;
+    display:grid;
+    place-items:center;
+    position:relative;
+    margin-bottom:20px;
+}
+
+canvas {
+    max-width:95%;
+    max-height:95%;
+}
+
+#fileInput {
+    position:absolute;
+    inset:0;
+    opacity:0;
+}
+
+/* FPS DROPDOWN */
+.select-box {
+    width:100%;
+    padding:12px;
+    border-radius:12px;
+    background:#1a202c;
+    color:#fff;
+    border:none;
+    font-weight:700;
+}
+
+/* BUTTON */
+.btn-generate {
+    width:100%;
+    padding:18px;
+    background:#00ff88;
+    border:none;
+    border-radius:15px;
+    font-weight:900;
+    margin-top:20px;
+}
 </style>
 </head>
 
 <body>
 
-<h2>GIF Editor (FPS Dropdown)</h2>
+<div class="app-container">
 
-<input type="file" id="fileInput" accept="image/gif"><br>
-
-<canvas id="canvas"></canvas><br>
+<div class="preview-wrapper">
+<input type="file" id="fileInput" accept="image/gif">
+<canvas id="mainCanvas"></canvas>
+</div>
 
 <!-- FPS DROPDOWN -->
-<label>Frame Rate (FPS)</label><br>
-<select id="fpsSelect">
+<label>Frame Rate (FPS)</label>
+<select id="fpsSelect" class="select-box">
 <option value="12">12 FPS</option>
 <option value="15">15 FPS</option>
 <option value="18">18 FPS</option>
 <option value="20">20 FPS</option>
-<option value="24" selected>24 FPS</option>
+<option value="24">24 FPS</option>
 <option value="25">25 FPS</option>
-<option value="30">30 FPS</option>
+<option value="30" selected>30 FPS</option>
 <option value="48">48 FPS</option>
 <option value="50">50 FPS</option>
 <option value="60">60 FPS</option>
-</select><br>
+</select>
 
-<button id="exportBtn">Export GIF</button>
+<button class="btn-generate" id="btnExport">Generate Sticker</button>
+
+</div>
 
 <script>
-
-const fileInput = document.getElementById("fileInput");
-const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d");
-const fpsSelect = document.getElementById("fpsSelect");
+const fileIn = document.getElementById('fileInput');
+const canvas = document.getElementById('mainCanvas');
+const ctx = canvas.getContext('2d');
+const fpsSelect = document.getElementById('fpsSelect');
+const exportBtn = document.getElementById('btnExport');
 
 let frames = [];
-let index = 0;
-let timer;
+let currentIdx = 0;
+let timer = null;
 
 function getDelay() {
-    const fps = parseInt(fpsSelect.value);
-    return 1000 / fps; // convert FPS → ms
+    return 1000 / fpsSelect.value; // FPS → ms
 }
 
-fileInput.onchange = async (e) => {
+fileIn.onchange = async (e) => {
     const file = e.target.files[0];
-    if (!file) return;
+    if(!file) return;
 
     const res = await gifFrames({
         url: URL.createObjectURL(file),
-        frames: "all",
-        outputType: "canvas"
+        frames: 'all',
+        outputType: 'canvas'
     });
 
     frames = res.map(f => f.getImage());
 
-    canvas.width = frames[0].width;
-    canvas.height = frames[0].height;
+    canvas.width = 512;
+    canvas.height = 512;
 
-    startPreview();
-};
-
-function startPreview() {
-    if (timer) clearInterval(timer);
+    if(timer) clearInterval(timer);
 
     timer = setInterval(() => {
-        ctx.clearRect(0,0,canvas.width,canvas.height);
-        ctx.drawImage(frames[index],0,0);
-        index = (index + 1) % frames.length;
+        renderLoop();
+        currentIdx = (currentIdx + 1) % frames.length;
     }, getDelay());
-}
-
-fpsSelect.onchange = () => {
-    startPreview();
 };
 
-document.getElementById("exportBtn").onclick = async () => {
+function renderLoop() {
+    if(!frames.length) return;
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.drawImage(frames[currentIdx],0,0,canvas.width,canvas.height);
+}
 
-    if (!frames.length) return;
+/* FPS CHANGE LIVE */
+fpsSelect.onchange = () => {
+    if(timer) {
+        clearInterval(timer);
+        timer = setInterval(() => {
+            renderLoop();
+            currentIdx = (currentIdx + 1) % frames.length;
+        }, getDelay());
+    }
+};
 
-    const response = await fetch('https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.worker.js');
-    const blob = await response.blob();
-    const workerUrl = URL.createObjectURL(blob);
+/* EXPORT */
+exportBtn.onclick = async () => {
+    if(!frames.length) return;
 
     const gif = new GIF({
-        workers: 2,
-        quality: 10,
-        width: canvas.width,
-        height: canvas.height,
-        workerScript: workerUrl
+        workers:2,
+        quality:10,
+        width:canvas.width,
+        height:canvas.height
     });
-
-    const delay = getDelay();
 
     frames.forEach(f => {
-        gif.addFrame(f, {delay: delay});
+        gif.addFrame(f, {
+            delay: getDelay(),
+            copy:true
+        });
     });
 
-    gif.on("finished", (blob) => {
-        const a = document.createElement("a");
+    gif.on('finished', blob => {
+        const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = "output.gif";
+        a.download = "sticker.gif";
         a.click();
     });
 
     gif.render();
 };
-
 </script>
 
 </body>
