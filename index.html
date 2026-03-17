@@ -2,110 +2,172 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pro Giphy Frame Editor</title><script src="https://unpkg.com/gif-frames/dist/gif-frames.min.js"></script><script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script><style>
+<title>Pro Giphy Frame Editor ULTRA</title><script src="https://unpkg.com/gif-frames/dist/gif-frames.min.js"></script><script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script><style>
 body {background:#0b0f1a;color:#fff;font-family:sans-serif;margin:0;padding:10px}
 .container{max-width:520px;margin:auto}
-canvas{width:100%;background:#fff;border-radius:15px}
-.controls{display:flex;gap:10px;margin-top:10px}
-button,select{flex:1;padding:10px;border:none;border-radius:10px;font-weight:bold}
+
+/* TRANSPARENT BACKBOARD */
+.preview{
+ width:100%;aspect-ratio:1/1;border-radius:15px;
+ background:#fff;
+ background-image:linear-gradient(45deg,#ccc 25%,transparent 25%),linear-gradient(-45deg,#ccc 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#ccc 75%),linear-gradient(-45deg,transparent 75%,#ccc 75%);
+ background-size:20px 20px;
+ display:grid;place-items:center
+}
+
+canvas{max-width:95%;max-height:95%}
+
+.controls{display:flex;gap:8px;margin-top:10px}
+button,input,select{flex:1;padding:10px;border:none;border-radius:10px;font-weight:bold}
+
 .timeline{display:flex;overflow-x:auto;gap:6px;margin-top:10px}
-.frame{width:60px;height:60px;border:2px solid #333;border-radius:8px;cursor:pointer}
+.frame{width:60px;height:60px;border:2px solid #333;border-radius:8px}
 .active{border-color:#00ff88}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+label{font-size:12px}
 </style></head>
-<body><div class="container">
-<canvas id="canvas" width="512" height="512"></canvas><div class="controls">
-<button id="playBtn">▶️ Play</button>
-<button id="pauseBtn">⏸ Pause</button>
-<button id="deleteBtn">🗑 Delete</button>
-</div><div class="controls">
-<select id="fps">
+<body><div class="container"><div class="preview">
+<canvas id="canvas" width="512" height="512"></canvas>
+</div><input type="file" id="fileInput" accept="image/gif"><!-- INFO --><div class="grid2">
+<div>W: <span id="wInfo">0</span></div>
+<div>H: <span id="hInfo">0</span></div>
+<div>Frames: <span id="fInfo">0</span></div>
+</div><!-- SIZE --><div class="grid2">
+<input type="number" id="width" value="512">
+<input type="number" id="height" value="512">
+</div><!-- FPS --><select id="fps">
 <option value="12">12 FPS</option>
 <option value="24" selected>24 FPS</option>
 <option value="30">30 FPS</option>
 <option value="60">60 FPS</option>
-</select>
-<button id="replaceBtn">Replace Frame</button>
-</div><input type="file" id="fileInput" accept="image/gif" style="margin-top:10px">
-<input type="file" id="replaceInput" accept="image/*" hidden><div class="timeline" id="timeline"></div><button id="exportBtn" style="margin-top:15px;width:100%;padding:15px;background:#00ff88;color:#000">Export GIF</button>
+</select><!-- BG REMOVE COLOR PICKER --><div class="grid2">
+<input type="color" id="bgColor" value="#ffffff">
+<input type="range" id="tolerance" min="0" max="100" value="40">
+</div><!-- STROKE + GLOW --><div class="grid2">
+<input type="color" id="strokeColor" value="#ffffff">
+<input type="range" id="strokeWidth" min="0" max="30" value="10">
+</div><div class="grid2">
+<input type="color" id="glowColor" value="#00ff88">
+<input type="range" id="glowPower" min="0" max="50" value="20">
+</div><!-- CONTROLS --><div class="controls">
+<button id="play">▶️</button>
+<button id="pause">⏸</button>
+<button id="delete">🗑</button>
+</div><div class="timeline" id="timeline"></div><button id="export" style="margin-top:15px;background:#00ff88;color:#000">EXPORT</button>
 
 </div><script>
-const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d');
-const timeline = document.getElementById('timeline');
+const canvas=document.getElementById('canvas');
+const ctx=canvas.getContext('2d');
+const timeline=document.getElementById('timeline');
 
-let frames = [];
-let current = 0;
-let timer = null;
+let frames=[],current=0,timer=null,origW=0,origH=0;
 
-function render(){
- if(!frames.length) return;
- ctx.clearRect(0,0,512,512);
- ctx.drawImage(frames[current],0,0,512,512);
+function delay(){return 1000/document.getElementById('fps').value}
+
+function process(img){
+ const W=width.value,H=height.value;
+ const temp=document.createElement('canvas');
+ temp.width=W;temp.height=H;
+ const t=temp.getContext('2d');
+ t.drawImage(img,0,0,W,H);
+
+ const imgData=t.getImageData(0,0,W,H);
+ const d=imgData.data;
+ const col=bgColor.value;
+ const r=parseInt(col.substr(1,2),16);
+ const g=parseInt(col.substr(3,2),16);
+ const b=parseInt(col.substr(5,2),16);
+ const tol=tolerance.value*2.55;
+
+ for(let i=0;i<d.length;i+=4){
+  const diff=Math.sqrt((d[i]-r)**2+(d[i+1]-g)**2+(d[i+2]-b)**2);
+  if(diff<tol)d[i+3]=0;
+ }
+ t.putImageData(imgData,0,0);
+
+ const out=document.createElement('canvas');
+ out.width=W;out.height=H;
+ const o=out.getContext('2d');
+
+ const sw=strokeWidth.value;
+ if(sw>0){
+  const s=document.createElement('canvas');
+  s.width=W;s.height=H;
+  const sx=s.getContext('2d');
+  sx.fillStyle=strokeColor.value;
+  for(let x=-sw;x<=sw;x+=2)for(let y=-sw;y<=sw;y+=2){
+   sx.drawImage(temp,x,y);
+  }
+  sx.globalCompositeOperation='source-in';
+  sx.fillRect(0,0,W,H);
+  o.shadowColor=glowColor.value;
+  o.shadowBlur=glowPower.value;
+  o.drawImage(s,0,0);
+ }
+
+ o.drawImage(temp,0,0);
+ return out;
 }
 
-function buildTimeline(){
+function render(){
+ if(!frames.length)return;
+ canvas.width=width.value;
+ canvas.height=height.value;
+ ctx.clearRect(0,0,canvas.width,canvas.height);
+ ctx.drawImage(process(frames[current]),0,0);
+}
+
+function build(){
  timeline.innerHTML="";
  frames.forEach((f,i)=>{
-   const c=document.createElement('canvas');
-   c.width=60;c.height=60;
-   c.className='frame'+(i===current?' active':'');
-   c.getContext('2d').drawImage(f,0,0,60,60);
-   c.onclick=()=>{current=i;render();buildTimeline();}
-   timeline.appendChild(c);
+  const c=document.createElement('canvas');
+  c.width=60;c.height=60;
+  c.className='frame'+(i===current?' active':'');
+  c.getContext('2d').drawImage(f,0,0,60,60);
+  c.onclick=()=>{current=i;render();build()};
+  timeline.appendChild(c);
  });
 }
 
-fileInput.onchange = async (e)=>{
+fileInput.onchange=async e=>{
  const file=e.target.files[0];
  const res=await gifFrames({url:URL.createObjectURL(file),frames:'all',outputType:'canvas'});
  frames=res.map(f=>f.getImage());
- current=0;
- render();
- buildTimeline();
+ origW=frames[0].width;
+ origH=frames[0].height;
+ wInfo.innerText=origW;
+ hInfo.innerText=origH;
+ fInfo.innerText=frames.length;
+ render();build();
 }
 
-playBtn.onclick=()=>{
+play.onclick=()=>{
  clearInterval(timer);
- const delay=1000/fps.value;
  timer=setInterval(()=>{
-   current=(current+1)%frames.length;
-   render();
-   buildTimeline();
- },delay);
+  current=(current+1)%frames.length;
+  render();build();
+ },delay());
 }
 
-pauseBtn.onclick=()=>clearInterval(timer);
+pause.onclick=()=>clearInterval(timer);
 
-deleteBtn.onclick=()=>{
+delete.onclick=()=>{
  if(frames.length>1){
-   frames.splice(current,1);
-   current=0;
-   render();
-   buildTimeline();
+  frames.splice(current,1);
+  current=0;
+  render();build();
  }
 }
 
-replaceBtn.onclick=()=>replaceInput.click();
-
-replaceInput.onchange=(e)=>{
- const img=new Image();
- img.onload=()=>{
-   frames[current]=img;
-   render();
-   buildTimeline();
- }
- img.src=URL.createObjectURL(e.target.files[0]);
-}
-
-exportBtn.onclick=()=>{
- const gif=new GIF({workers:2,quality:10,width:512,height:512});
- const delay=1000/fps.value;
- frames.forEach(f=>gif.addFrame(f,{delay,copy:true}));
+export.onclick=()=>{
+ const gif=new GIF({workers:2,quality:10,width:width.value,height:height.value});
+ frames.forEach(f=>gif.addFrame(process(f),{delay:delay(),copy:true}));
  gif.on('finished',b=>{
-   const a=document.createElement('a');
-   a.href=URL.createObjectURL(b);
-   a.download='pro.gif';
-   a.click();
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(b);
+  a.download='ultra.gif';
+  a.click();
  });
  gif.render();
 }
