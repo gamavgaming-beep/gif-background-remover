@@ -10,91 +10,93 @@
 
 <style>
 :root {
-    --accent: #00ff88;
-    --accent-glow: rgba(0, 255, 136, 0.4);
-    --bg: #0b0f1a;
-    --surface: #171c29;
-    --text-main: #ffffff;
-    --text-dim: #94a3b8;
-    --border: rgba(255, 255, 255, 0.1);
+    --accent:#00ff88;
+    --accent-glow:rgba(0,255,136,0.4);
+    --bg:#0b0f1a;
+    --surface:#171c29;
+    --text-main:#fff;
+    --text-dim:#94a3b8;
+    --border:rgba(255,255,255,0.1);
 }
 
-body {
-    background: var(--bg);
-    color: var(--text-main);
-    font-family: sans-serif;
-    display: flex;
-    justify-content: center;
-    padding: 15px;
+body{
+    font-family:sans-serif;
+    background:var(--bg);
+    color:#fff;
+    display:flex;
+    justify-content:center;
+    padding:15px;
 }
 
-.app-container {
-    width: 100%;
-    max-width: 520px;
+.app-container{
+    width:100%;
+    max-width:520px;
+    background:var(--surface);
+    padding:20px;
+    border-radius:25px;
 }
 
-.preview-wrapper {
-    aspect-ratio: 1/1;
-    border-radius: 24px;
-    border: 3px solid var(--accent);
-    display: grid;
-    place-items: center;
+/* preview */
+.preview-wrapper{
+    aspect-ratio:1/1;
+    border:3px solid var(--accent);
+    border-radius:20px;
+    display:grid;
+    place-items:center;
 
-    background: #fff;
+    background:#fff;
     background-image:
     linear-gradient(45deg,#ddd 25%,transparent 25%),
     linear-gradient(-45deg,#ddd 25%,transparent 25%),
     linear-gradient(45deg,transparent 75%,#ddd 75%),
     linear-gradient(-45deg,transparent 75%,#ddd 75%);
-    background-size: 20px 20px;
+    background-size:20px 20px;
 }
 
-canvas { max-width: 95%; }
+canvas{max-width:95%}
 
-.section-title {
-    color: var(--accent);
-    margin-top: 20px;
-    font-weight: bold;
+.section-title{
+    color:var(--accent);
+    margin-top:20px;
+    font-weight:bold;
 }
 
-.control-panel {
-    background: #111;
-    padding: 15px;
-    border-radius: 15px;
-    margin-top: 10px;
+.control-panel{
+    background:#111;
+    padding:15px;
+    border-radius:15px;
+    margin-top:10px;
 }
 
-.input-group {
-    margin-bottom: 15px;
+.input-group{
+    margin-bottom:15px;
 }
 
-label {
-    font-size: 12px;
-    display: flex;
-    justify-content: space-between;
+label{
+    display:flex;
+    justify-content:space-between;
+    font-size:12px;
 }
 
-input[type="range"] {
-    width: 100%;
+/* dropdown */
+.fps-dropdown{
+    width:100%;
+    padding:12px;
+    border-radius:12px;
+    background:#1a202c;
+    color:#fff;
+    border:1px solid var(--border);
+    font-weight:700;
 }
 
-.fps-dropdown {
-    width: 100%;
-    padding: 12px;
-    border-radius: 12px;
-    background: #1a202c;
-    color: #fff;
-    border: 1px solid var(--border);
-    font-weight: bold;
-}
-
-.btn-generate {
-    width: 100%;
-    padding: 18px;
-    background: var(--accent);
-    border: none;
-    border-radius: 15px;
-    font-weight: bold;
+.btn-generate{
+    width:100%;
+    padding:18px;
+    background:var(--accent);
+    border:none;
+    border-radius:15px;
+    font-weight:bold;
+    margin-top:20px;
 }
 </style>
 </head>
@@ -111,6 +113,17 @@ input[type="range"] {
 <div class="section-title">Resolution & Speed</div>
 <div class="control-panel">
 
+<div class="input-group">
+<label>Width</label>
+<input type="number" id="widthIn" value="500">
+</div>
+
+<div class="input-group">
+<label>Height</label>
+<input type="number" id="heightIn" value="500">
+</div>
+
+<!-- ✅ FPS DROPDOWN -->
 <div class="input-group">
 <label>Frame Rate <span id="fpsLabel">30 FPS</span></label>
 
@@ -136,43 +149,43 @@ input[type="range"] {
 
 <script>
 
-const fileIn = document.getElementById('fileInput');
-const canvas = document.getElementById('mainCanvas');
-const ctx = canvas.getContext('2d');
-const fpsSelect = document.getElementById('fpsSelect');
+const fileIn=document.getElementById('fileInput');
+const canvas=document.getElementById('mainCanvas');
+const ctx=canvas.getContext('2d');
+const fpsSelect=document.getElementById('fpsSelect');
 
-let frames = [], timer = null, currentIdx = 0;
+let frames=[],timer,currentIdx=0;
 
-function getDelay() {
+function getDelay(){
     return Math.round(1000 / fpsSelect.value);
 }
 
-fpsSelect.onchange = () => {
-    document.getElementById('fpsLabel').innerText = fpsSelect.value + " FPS";
+fpsSelect.onchange=()=>{
+    document.getElementById('fpsLabel').innerText=fpsSelect.value+" FPS";
 
     if(timer){
         clearInterval(timer);
-        timer = setInterval(loop, getDelay());
+        timer=setInterval(loop,getDelay());
     }
 };
 
-fileIn.onchange = async (e) => {
-    const file = e.target.files[0];
+fileIn.onchange=async(e)=>{
+    const file=e.target.files[0];
     if(!file) return;
 
-    const res = await gifFrames({
-        url: URL.createObjectURL(file),
-        frames: 'all',
-        outputType: 'canvas'
+    const res=await gifFrames({
+        url:URL.createObjectURL(file),
+        frames:'all',
+        outputType:'canvas'
     });
 
-    frames = res.map(f => f.getImage());
+    frames=res.map(f=>f.getImage());
 
-    canvas.width = 500;
-    canvas.height = 500;
+    canvas.width=500;
+    canvas.height=500;
 
     if(timer) clearInterval(timer);
-    timer = setInterval(loop, getDelay());
+    timer=setInterval(loop,getDelay());
 };
 
 function loop(){
@@ -181,29 +194,27 @@ function loop(){
     ctx.clearRect(0,0,canvas.width,canvas.height);
     ctx.drawImage(frames[currentIdx],0,0,500,500);
 
-    currentIdx = (currentIdx + 1) % frames.length;
+    currentIdx=(currentIdx+1)%frames.length;
 }
 
-document.getElementById('btnExport').onclick = () => {
+document.getElementById('btnExport').onclick=()=>{
     if(!frames.length) return;
 
-    const gif = new GIF({
-        workers: 2,
-        quality: 10,
-        width: canvas.width,
-        height: canvas.height
+    const gif=new GIF({
+        workers:2,
+        quality:10,
+        width:canvas.width,
+        height:canvas.height
     });
 
-    frames.forEach(f => {
-        gif.addFrame(f, {
-            delay: getDelay()
-        });
+    frames.forEach(f=>{
+        gif.addFrame(f,{delay:getDelay()});
     });
 
-    gif.on('finished', (blob) => {
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = "sticker.gif";
+    gif.on('finished',blob=>{
+        const a=document.createElement('a');
+        a.href=URL.createObjectURL(blob);
+        a.download="sticker.gif";
         a.click();
     });
 
