@@ -1,174 +1,206 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ultra GIF BG Remover</title>
+
+<title>MASTER EDITOR PRO MAX</title>
+
+<script src="https://unpkg.com/gifuct-js/dist/gifuct.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
 
 <style>
 body {
   margin: 0;
-  background: #0f0f0f;
-  font-family: Arial;
+  background: #000;
   color: white;
+  font-family: sans-serif;
 }
 
 /* TOP BAR */
 .topbar {
   display: flex;
   justify-content: space-between;
-  padding: 15px;
-  background: #1a1a1a;
-  align-items: center;
-}
-
-.export {
-  background: linear-gradient(45deg,#00eaff,#a855f7);
-  border: none;
-  padding: 10px 20px;
-  border-radius: 10px;
-  color: white;
-  box-shadow: 0 0 15px #00eaff;
-  cursor: pointer;
-}
-
-/* UPLOAD */
-.upload-box {
-  border: 2px dashed #00eaff;
-  margin: 20px;
-  padding: 40px;
-  text-align: center;
-  border-radius: 15px;
-  cursor: pointer;
-}
-
-/* PREVIEW */
-.preview {
-  display: flex;
-  gap: 10px;
-  justify-content: center;
   padding: 10px;
+  background: #111;
 }
 
-.preview img {
-  width: 45%;
-  border-radius: 10px;
+/* TIMELINE */
+.timeline {
+  display: flex;
+  overflow-x: auto;
+  padding: 10px;
+  background: #111;
+}
+
+.frame {
+  width: 60px;
+  height: 60px;
+  margin: 5px;
   background: #222;
+  border-radius: 8px;
+}
+
+/* CANVAS */
+canvas {
+  display: block;
+  margin: auto;
+  max-width: 95%;
+  background: #111;
 }
 
 /* CONTROLS */
 .controls {
-  padding: 20px;
   text-align: center;
-}
-
-.controls input {
-  width: 80%;
-}
-
-/* FOOTER PANEL */
-.bottom-panel {
-  position: fixed;
-  bottom: 0;
-  width: 100%;
-  background: #1a1a1a;
   padding: 10px;
-  display: flex;
-  justify-content: space-around;
+}
+
+button {
+  margin: 5px;
+  padding: 10px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(45deg,#00eaff,#a855f7);
+  color: white;
 }
 </style>
-
 </head>
 
 <body>
 
 <div class="topbar">
-  <button onclick="goBack()">←</button>
-  <h3>GIF BG REMOVER</h3>
-  <button class="export" onclick="exportGIF()">Export</button>
+  <span>PRO MAX EDITOR</span>
+  <button onclick="exportGIF()">Export</button>
 </div>
 
-<div class="upload-box" onclick="upload.click()">
-  Upload GIF
-  <input type="file" id="upload" accept="image/gif" hidden>
-</div>
+<input type="file" id="fileInput">
 
-<div class="preview">
-  <img id="original">
-  <canvas id="canvas"></canvas>
-</div>
+<canvas id="canvas"></canvas>
+
+<div class="timeline" id="timeline"></div>
 
 <div class="controls">
-  <p>Threshold</p>
-  <input type="range" id="threshold" min="0" max="255" value="120">
-  <br><br>
-  <button onclick="removeBG()">Remove Background</button>
-</div>
-
-<div class="bottom-panel">
-  <button onclick="zoomIn()">Zoom +</button>
-  <button onclick="zoomOut()">Zoom -</button>
+  <button onclick="play()">▶</button>
+  <button onclick="pause()">⏸</button>
+  <button onclick="process()">BG Remove</button>
 </div>
 
 <script>
-let img = new Image();
+
+let frames = [];
+let current = 0;
+let playing = false;
+
 let canvas = document.getElementById("canvas");
 let ctx = canvas.getContext("2d");
 
-upload.onchange = e => {
-  const file = e.target.files[0];
-  if (!file) return;
+fileInput.onchange = async (e) => {
+  let file = e.target.files[0];
+  let buffer = await file.arrayBuffer();
 
-  const url = URL.createObjectURL(file);
-  img.src = url;
-  document.getElementById("original").src = url;
+  let gif = parseGIF(buffer);
+  frames = decompressFrames(gif, true);
 
-  img.onload = () => {
-    canvas.width = img.width;
-    canvas.height = img.height;
-    ctx.drawImage(img, 0, 0);
-  };
+  buildTimeline();
+  renderFrame(0);
 };
 
-function removeBG() {
-  let threshold = document.getElementById("threshold").value;
+function buildTimeline() {
+  let t = document.getElementById("timeline");
+  t.innerHTML = "";
 
-  ctx.drawImage(img, 0, 0);
-  let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  let data = imageData.data;
+  frames.forEach((f, i) => {
+    let div = document.createElement("div");
+    div.className = "frame";
+    div.onclick = () => {
+      current = i;
+      renderFrame(i);
+    };
+    t.appendChild(div);
+  });
+}
 
-  for (let i = 0; i < data.length; i += 4) {
-    let r = data[i];
-    let g = data[i + 1];
-    let b = data[i + 2];
+function renderFrame(i) {
+  let f = frames[i];
 
-    // Simple background remove (white detect)
-    if (r > threshold && g > threshold && b > threshold) {
-      data[i + 3] = 0;
+  canvas.width = f.dims.width;
+  canvas.height = f.dims.height;
+
+  let imgData = ctx.createImageData(canvas.width, canvas.height);
+  imgData.data.set(f.patch);
+  ctx.putImageData(imgData, 0, 0);
+}
+
+function play() {
+  playing = true;
+  loop();
+}
+
+function pause() {
+  playing = false;
+}
+
+function loop() {
+  if (!playing) return;
+
+  renderFrame(current);
+  current = (current + 1) % frames.length;
+
+  requestAnimationFrame(loop);
+}
+
+function process() {
+  frames.forEach(f => {
+    let d = f.patch;
+    for (let i=0;i<d.length;i+=4) {
+      if (d[i]>200 && d[i+1]>200 && d[i+2]>200) {
+        d[i+3]=0;
+      }
     }
-  }
-
-  ctx.putImageData(imageData, 0, 0);
+  });
+  renderFrame(current);
 }
 
 function exportGIF() {
-  let link = document.createElement("a");
-  link.download = "output.png";
-  link.href = canvas.toDataURL();
-  link.click();
+
+  let gif = new GIF({
+    workers:2,
+    quality:10,
+    workerScript:"https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js",
+    transparent:0x00FF00
+  });
+
+  frames.forEach(f => {
+    let c=document.createElement("canvas");
+    c.width=f.dims.width;
+    c.height=f.dims.height;
+    let cx=c.getContext("2d");
+
+    let img=cx.createImageData(c.width,c.height);
+    let d=f.patch;
+
+    for(let i=0;i<d.length;i+=4){
+      if(d[i+3]===0){
+        d[i]=0; d[i+1]=255; d[i+2]=0; d[i+3]=255;
+      }
+    }
+
+    img.data.set(d);
+    cx.putImageData(img,0,0);
+
+    gif.addFrame(c,{delay:50});
+  });
+
+  gif.on('finished',b=>{
+    let a=document.createElement("a");
+    a.href=URL.createObjectURL(b);
+    a.download="pro.gif";
+    a.click();
+  });
+
+  gif.render();
 }
 
-function zoomIn() {
-  canvas.style.transform = "scale(1.2)";
-}
-
-function zoomOut() {
-  canvas.style.transform = "scale(1)";
-}
-
-function goBack() {
-  alert("Back pressed");
-}
 </script>
 
 </body>
