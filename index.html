@@ -3,308 +3,282 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ULTIMATE AI GIF EDITOR</title>
+<title>FINAL STUDIO AI EDITOR</title>
 
-<!-- AI + GIF LIBRARIES -->
+<!-- LIBRARIES -->
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/body-pix"></script>
 <script src="https://unpkg.com/gifuct-js/dist/gifuct.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
 
 <style>
-body {
-  margin: 0;
-  background: #000;
-  color: white;
-  font-family: sans-serif;
+body {margin:0;background:#000;color:white;font-family:sans-serif;}
+
+/* TOP */
+.topbar {
+  display:flex;justify-content:space-between;padding:10px;background:#111;
 }
 
-/* TOP BAR */
-.topbar {
-  display: flex;
-  justify-content: space-between;
-  padding: 10px;
-  background: #111;
+/* CANVAS */
+.preview {
+  display:flex;justify-content:center;align-items:center;height:50vh;
+}
+canvas {
+  max-width:95%;
+  background-image:
+    linear-gradient(45deg,#444 25%,transparent 25%),
+    linear-gradient(-45deg,#444 25%,transparent 25%),
+    linear-gradient(45deg,transparent 75%,#444 75%),
+    linear-gradient(-45deg,transparent 75%,#444 75%);
+  background-size:20px 20px;
 }
 
 /* TIMELINE */
 .timeline {
-  display: flex;
-  overflow-x: auto;
-  padding: 10px;
-  background: #111;
+  display:flex;overflow-x:auto;padding:10px;background:#111;
 }
 
-.frame {
-  width: 60px;
-  height: 60px;
-  margin: 5px;
-  background: #222;
-  border-radius: 8px;
-}
-
-/* CANVAS */
-canvas {
-  display: block;
-  margin: auto;
-  max-width: 95%;
-  background: #111;
-}
-
-/* CONTROLS */
+/* BOTTOM PANEL */
 .controls {
-  text-align: center;
-  padding: 10px;
+  position:fixed;bottom:0;width:100%;
+  background:#111;padding:10px;
+  text-align:center;
 }
 
 button {
-  margin: 5px;
-  padding: 10px;
-  border-radius: 10px;
-  border: none;
-  background: linear-gradient(45deg,#00eaff,#a855f7);
-  color: white;
-  box-shadow: 0 0 10px #00eaff;
+  margin:5px;padding:10px;border:none;border-radius:10px;
+  background:linear-gradient(45deg,#00eaff,#a855f7);
+  color:white;
 }
 
-input {
-  margin: 5px;
-}
+input {margin:5px;}
 </style>
 </head>
 
 <body>
 
 <div class="topbar">
-  <span>🔥 AI PRO MAX EDITOR</span>
-  <button onclick="exportGIF()">Export GIF</button>
+  <span>🔥 FINAL AI EDITOR</span>
+  <button onclick="exportGIF()">Export</button>
 </div>
 
 <input type="file" id="fileInput">
 
-<canvas id="canvas"></canvas>
+<div class="preview">
+  <canvas id="canvas"></canvas>
+</div>
 
 <div class="timeline" id="timeline"></div>
 
 <div class="controls">
 
-  <button onclick="play()">▶</button>
-  <button onclick="pause()">⏸</button>
+<button onclick="play()">▶</button>
+<button onclick="pause()">⏸</button>
 
-  <br>
+<br>
 
-  <button onclick="process()">Basic BG Remove</button>
-  <button onclick="aiRemoveBG()">AI Remove (Frame)</button>
-  <button onclick="aiProcessAllFrames()">AI Remove (All)</button>
+<button onclick="process()">Basic BG</button>
+<button onclick="aiRemoveBG()">AI Frame</button>
+<button onclick="aiProcessAllFrames()">AI All</button>
 
-  <br>
+<br>
 
-  🎚 Threshold
-  <input type="range" id="threshold" min="0" max="255" value="120">
+<button onclick="enableBrush()">Brush</button>
+<button onclick="disableBrush()">Move</button>
 
-  <br>
+<br>
 
-  🎨 BG Color
-  <input type="color" id="bgColor" value="#000000">
+🖌 Size
+<input type="range" min="5" max="50" value="20" oninput="brushSize=this.value">
 
-  ✏️ Stroke
-  <input type="color" id="strokeColor" value="#00eaff">
-
-  Width
-  <input type="range" id="strokeWidth" min="0" max="10" value="2">
-
-  Glow
-  <input type="range" id="glow" min="0" max="30" value="10">
+🎚 Threshold
+<input type="range" id="threshold" min="0" max="255" value="120">
 
 </div>
 
 <script>
 
-let frames = [];
-let current = 0;
-let playing = false;
-
-let canvas = document.getElementById("canvas");
-let ctx = canvas.getContext("2d");
-
+let frames=[],current=0,playing=false;
+let canvas=document.getElementById("canvas");
+let ctx=canvas.getContext("2d");
 let net;
 
-// LOAD AI MODEL
-async function loadAI() {
-  net = await bodyPix.load({
-    architecture: "MobileNetV1",
-    outputStride: 16,
-    multiplier: 0.75,
-    quantBytes: 2
-  });
-  console.log("AI Loaded 🔥");
+let drawing=false;
+let brushSize=20;
+
+/* LOAD AI */
+async function loadAI(){
+ net=await bodyPix.load();
+ console.log("AI Loaded");
 }
 loadAI();
 
-// FILE LOAD
-fileInput.onchange = async (e) => {
-  let file = e.target.files[0];
-  let buffer = await file.arrayBuffer();
-
-  let gif = parseGIF(buffer);
-  frames = decompressFrames(gif, true);
-
-  buildTimeline();
-  renderFrame(0);
+/* FILE LOAD */
+fileInput.onchange=async(e)=>{
+ let file=e.target.files[0];
+ let buf=await file.arrayBuffer();
+ let gif=parseGIF(buf);
+ frames=decompressFrames(gif,true);
+ buildTimeline();
+ renderFrame(0);
 };
 
-// TIMELINE
-function buildTimeline() {
-  let t = document.getElementById("timeline");
-  t.innerHTML = "";
-
-  frames.forEach((f, i) => {
-    let div = document.createElement("div");
-    div.className = "frame";
-    div.onclick = () => {
-      current = i;
-      renderFrame(i);
-    };
-    t.appendChild(div);
-  });
+/* RENDER */
+function renderFrame(i){
+ let f=frames[i];
+ canvas.width=f.dims.width;
+ canvas.height=f.dims.height;
+ let img=ctx.createImageData(canvas.width,canvas.height);
+ img.data.set(f.patch);
+ ctx.clearRect(0,0,canvas.width,canvas.height);
+ ctx.putImageData(img,0,0);
 }
 
-// RENDER
-function renderFrame(i) {
-  let f = frames[i];
+/* TIMELINE */
+function buildTimeline(){
+ let t=document.getElementById("timeline");
+ t.innerHTML="";
+ frames.forEach((f,i)=>{
+  let c=document.createElement("canvas");
+  c.width=60;c.height=60;
+  let cx=c.getContext("2d");
 
-  canvas.width = f.dims.width;
-  canvas.height = f.dims.height;
+  let temp=document.createElement("canvas");
+  temp.width=f.dims.width;
+  temp.height=f.dims.height;
+  let tx=temp.getContext("2d");
 
-  let imgData = ctx.createImageData(canvas.width, canvas.height);
-  imgData.data.set(f.patch);
-  ctx.putImageData(imgData, 0, 0);
+  let img=tx.createImageData(temp.width,temp.height);
+  img.data.set(f.patch);
+  tx.putImageData(img,0,0);
+
+  cx.drawImage(temp,0,0,60,60);
+
+  c.onclick=()=>{current=i;renderFrame(i);}
+  t.appendChild(c);
+ });
 }
 
-// PLAY
-function play() {
-  playing = true;
-  loop();
+/* PLAY */
+function play(){playing=true;loop();}
+function pause(){playing=false;}
+function loop(){
+ if(!playing)return;
+ renderFrame(current);
+ current=(current+1)%frames.length;
+ requestAnimationFrame(loop);
 }
 
-function pause() {
-  playing = false;
+/* BASIC BG */
+function process(){
+ let th=+threshold.value;
+ frames.forEach(f=>{
+  let d=f.patch;
+  for(let i=0;i<d.length;i+=4){
+   if(d[i]>th&&d[i+1]>th&&d[i+2]>th)d[i+3]=0;
+  }
+ });
+ renderFrame(current);
 }
 
-function loop() {
-  if (!playing) return;
-  renderFrame(current);
-  current = (current + 1) % frames.length;
-  requestAnimationFrame(loop);
+/* AI FRAME */
+async function aiRemoveBG(){
+ if(!net)return;
+ renderFrame(current);
+ let seg=await net.segmentPerson(canvas);
+ let img=ctx.getImageData(0,0,canvas.width,canvas.height);
+ let p=img.data;
+ for(let i=0;i<seg.data.length;i++){
+  if(seg.data[i]===0)p[i*4+3]=0;
+ }
+ ctx.putImageData(img,0,0);
 }
 
-// BASIC BG REMOVE
-function process() {
-  let threshold = +document.getElementById("threshold").value;
-
-  frames.forEach(f => {
-    let d = f.patch;
-
-    for (let i=0;i<d.length;i+=4) {
-      if (d[i]>threshold && d[i+1]>threshold && d[i+2]>threshold) {
-        d[i+3]=0;
-      }
-    }
-  });
-
-  applyEffects();
+/* AI ALL */
+async function aiProcessAllFrames(){
+ if(!net)return;
+ for(let f=0;f<frames.length;f++){
+  renderFrame(f);
+  let seg=await net.segmentPerson(canvas);
+  let img=ctx.getImageData(0,0,canvas.width,canvas.height);
+  let p=img.data;
+  for(let i=0;i<seg.data.length;i++){
+   if(seg.data[i]===0)p[i*4+3]=0;
+  }
+  frames[f].patch=p;
+ }
+ renderFrame(current);
 }
 
-// AI REMOVE CURRENT FRAME
-async function aiRemoveBG() {
-  if (!net) return alert("AI Loading...");
+/* BRUSH */
+canvas.addEventListener("mousedown",()=>drawing=true);
+canvas.addEventListener("mouseup",()=>drawing=false);
+canvas.addEventListener("mousemove",draw);
 
-  renderFrame(current);
+canvas.addEventListener("touchstart",()=>drawing=true);
+canvas.addEventListener("touchend",()=>drawing=false);
+canvas.addEventListener("touchmove",draw);
 
-  const seg = await net.segmentPerson(canvas);
+function getPos(e){
+ let r=canvas.getBoundingClientRect();
+ let x=(e.touches?e.touches[0].clientX:e.clientX)-r.left;
+ let y=(e.touches?e.touches[0].clientY:e.clientY)-r.top;
+ return{x,y};
+}
 
-  let img = ctx.getImageData(0,0,canvas.width,canvas.height);
-  let p = img.data;
+function draw(e){
+ if(!drawing)return;
+ let p=getPos(e);
+ ctx.globalCompositeOperation="destination-out";
+ ctx.beginPath();
+ ctx.arc(p.x,p.y,brushSize,0,Math.PI*2);
+ ctx.fill();
+ updateFrame();
+}
 
-  for (let i=0;i<seg.data.length;i++) {
-    if (seg.data[i]===0) p[i*4+3]=0;
+function updateFrame(){
+ let img=ctx.getImageData(0,0,canvas.width,canvas.height);
+ frames[current].patch=img.data;
+}
+
+function enableBrush(){canvas.style.cursor="crosshair";}
+function disableBrush(){canvas.style.cursor="default";ctx.globalCompositeOperation="source-over";}
+
+/* EXPORT */
+function exportGIF(){
+ let gif=new GIF({
+  workers:2,
+  quality:10,
+  workerScript:"https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js",
+  transparent:0x00FF00
+ });
+
+ frames.forEach(f=>{
+  let c=document.createElement("canvas");
+  c.width=f.dims.width;
+  c.height=f.dims.height;
+  let cx=c.getContext("2d");
+
+  let img=cx.createImageData(c.width,c.height);
+  let d=f.patch;
+
+  for(let i=0;i<d.length;i+=4){
+   if(d[i+3]===0){d[i]=0;d[i+1]=255;d[i+2]=0;d[i+3]=255;}
   }
 
-  ctx.putImageData(img,0,0);
-}
+  img.data.set(d);
+  cx.putImageData(img,0,0);
+  gif.addFrame(c,{delay:50});
+ });
 
-// AI REMOVE ALL FRAMES
-async function aiProcessAllFrames() {
-  if (!net) return alert("AI Loading...");
+ gif.on('finished',b=>{
+  let a=document.createElement("a");
+  a.href=URL.createObjectURL(b);
+  a.download="final.gif";
+  a.click();
+ });
 
-  for (let f=0;f<frames.length;f++) {
-
-    renderFrame(f);
-
-    const seg = await net.segmentPerson(canvas);
-
-    let img = ctx.getImageData(0,0,canvas.width,canvas.height);
-    let p = img.data;
-
-    for (let i=0;i<seg.data.length;i++) {
-      if (seg.data[i]===0) p[i*4+3]=0;
-    }
-
-    frames[f].patch = p;
-  }
-
-  renderFrame(current);
-}
-
-// EFFECTS
-function applyEffects() {
-
-  let stroke = document.getElementById("strokeColor").value;
-  let glow = document.getElementById("glow").value;
-
-  canvas.style.filter = `drop-shadow(0 0 ${glow}px ${stroke})`;
-}
-
-// EXPORT GIF
-function exportGIF() {
-
-  let gif = new GIF({
-    workers:2,
-    quality:10,
-    workerScript:"https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js",
-    transparent:0x00FF00
-  });
-
-  frames.forEach(f => {
-
-    let c=document.createElement("canvas");
-    c.width=f.dims.width;
-    c.height=f.dims.height;
-
-    let cx=c.getContext("2d");
-    let img=cx.createImageData(c.width,c.height);
-    let d=f.patch;
-
-    for(let i=0;i<d.length;i+=4){
-      if(d[i+3]===0){
-        d[i]=0; d[i+1]=255; d[i+2]=0; d[i+3]=255;
-      }
-    }
-
-    img.data.set(d);
-    cx.putImageData(img,0,0);
-
-    gif.addFrame(c,{delay:50});
-  });
-
-  gif.on('finished',b=>{
-    let a=document.createElement("a");
-    a.href=URL.createObjectURL(b);
-    a.download="ultimate.gif";
-    a.click();
-  });
-
-  gif.render();
+ gif.render();
 }
 
 </script>
