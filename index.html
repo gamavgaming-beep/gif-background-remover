@@ -1,11 +1,13 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ULTIMATE AI GIF EDITOR</title>
 
-<title>MASTER EDITOR PRO MAX</title>
-
+<!-- AI + GIF LIBRARIES -->
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/body-pix"></script>
 <script src="https://unpkg.com/gifuct-js/dist/gifuct.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
 
@@ -62,6 +64,11 @@ button {
   border: none;
   background: linear-gradient(45deg,#00eaff,#a855f7);
   color: white;
+  box-shadow: 0 0 10px #00eaff;
+}
+
+input {
+  margin: 5px;
 }
 </style>
 </head>
@@ -69,8 +76,8 @@ button {
 <body>
 
 <div class="topbar">
-  <span>PRO MAX EDITOR</span>
-  <button onclick="exportGIF()">Export</button>
+  <span>🔥 AI PRO MAX EDITOR</span>
+  <button onclick="exportGIF()">Export GIF</button>
 </div>
 
 <input type="file" id="fileInput">
@@ -80,9 +87,35 @@ button {
 <div class="timeline" id="timeline"></div>
 
 <div class="controls">
+
   <button onclick="play()">▶</button>
   <button onclick="pause()">⏸</button>
-  <button onclick="process()">BG Remove</button>
+
+  <br>
+
+  <button onclick="process()">Basic BG Remove</button>
+  <button onclick="aiRemoveBG()">AI Remove (Frame)</button>
+  <button onclick="aiProcessAllFrames()">AI Remove (All)</button>
+
+  <br>
+
+  🎚 Threshold
+  <input type="range" id="threshold" min="0" max="255" value="120">
+
+  <br>
+
+  🎨 BG Color
+  <input type="color" id="bgColor" value="#000000">
+
+  ✏️ Stroke
+  <input type="color" id="strokeColor" value="#00eaff">
+
+  Width
+  <input type="range" id="strokeWidth" min="0" max="10" value="2">
+
+  Glow
+  <input type="range" id="glow" min="0" max="30" value="10">
+
 </div>
 
 <script>
@@ -94,6 +127,21 @@ let playing = false;
 let canvas = document.getElementById("canvas");
 let ctx = canvas.getContext("2d");
 
+let net;
+
+// LOAD AI MODEL
+async function loadAI() {
+  net = await bodyPix.load({
+    architecture: "MobileNetV1",
+    outputStride: 16,
+    multiplier: 0.75,
+    quantBytes: 2
+  });
+  console.log("AI Loaded 🔥");
+}
+loadAI();
+
+// FILE LOAD
 fileInput.onchange = async (e) => {
   let file = e.target.files[0];
   let buffer = await file.arrayBuffer();
@@ -105,6 +153,7 @@ fileInput.onchange = async (e) => {
   renderFrame(0);
 };
 
+// TIMELINE
 function buildTimeline() {
   let t = document.getElementById("timeline");
   t.innerHTML = "";
@@ -120,6 +169,7 @@ function buildTimeline() {
   });
 }
 
+// RENDER
 function renderFrame(i) {
   let f = frames[i];
 
@@ -131,6 +181,7 @@ function renderFrame(i) {
   ctx.putImageData(imgData, 0, 0);
 }
 
+// PLAY
 function play() {
   playing = true;
   loop();
@@ -142,25 +193,79 @@ function pause() {
 
 function loop() {
   if (!playing) return;
-
   renderFrame(current);
   current = (current + 1) % frames.length;
-
   requestAnimationFrame(loop);
 }
 
+// BASIC BG REMOVE
 function process() {
+  let threshold = +document.getElementById("threshold").value;
+
   frames.forEach(f => {
     let d = f.patch;
+
     for (let i=0;i<d.length;i+=4) {
-      if (d[i]>200 && d[i+1]>200 && d[i+2]>200) {
+      if (d[i]>threshold && d[i+1]>threshold && d[i+2]>threshold) {
         d[i+3]=0;
       }
     }
   });
+
+  applyEffects();
+}
+
+// AI REMOVE CURRENT FRAME
+async function aiRemoveBG() {
+  if (!net) return alert("AI Loading...");
+
+  renderFrame(current);
+
+  const seg = await net.segmentPerson(canvas);
+
+  let img = ctx.getImageData(0,0,canvas.width,canvas.height);
+  let p = img.data;
+
+  for (let i=0;i<seg.data.length;i++) {
+    if (seg.data[i]===0) p[i*4+3]=0;
+  }
+
+  ctx.putImageData(img,0,0);
+}
+
+// AI REMOVE ALL FRAMES
+async function aiProcessAllFrames() {
+  if (!net) return alert("AI Loading...");
+
+  for (let f=0;f<frames.length;f++) {
+
+    renderFrame(f);
+
+    const seg = await net.segmentPerson(canvas);
+
+    let img = ctx.getImageData(0,0,canvas.width,canvas.height);
+    let p = img.data;
+
+    for (let i=0;i<seg.data.length;i++) {
+      if (seg.data[i]===0) p[i*4+3]=0;
+    }
+
+    frames[f].patch = p;
+  }
+
   renderFrame(current);
 }
 
+// EFFECTS
+function applyEffects() {
+
+  let stroke = document.getElementById("strokeColor").value;
+  let glow = document.getElementById("glow").value;
+
+  canvas.style.filter = `drop-shadow(0 0 ${glow}px ${stroke})`;
+}
+
+// EXPORT GIF
 function exportGIF() {
 
   let gif = new GIF({
@@ -171,11 +276,12 @@ function exportGIF() {
   });
 
   frames.forEach(f => {
+
     let c=document.createElement("canvas");
     c.width=f.dims.width;
     c.height=f.dims.height;
-    let cx=c.getContext("2d");
 
+    let cx=c.getContext("2d");
     let img=cx.createImageData(c.width,c.height);
     let d=f.patch;
 
@@ -194,7 +300,7 @@ function exportGIF() {
   gif.on('finished',b=>{
     let a=document.createElement("a");
     a.href=URL.createObjectURL(b);
-    a.download="pro.gif";
+    a.download="ultimate.gif";
     a.click();
   });
 
